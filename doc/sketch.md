@@ -53,15 +53,15 @@ prod $SCOPE*elaborate*fresh*message when {
   }
 ```
 
-~~~kotlin
+```kotlin
 struct("Channel", type=Input) {
     member("channel-id", "String")
     member("service-id", "String")
     member("server-id", "String")
     member("metadata", "Metadata")
     tag("private", "Boolean")
-    proc("is-private") {
+    lhs("is-private") {
         subst("[ngs-is-tagged $binding $::Channel::tags::private $::NGS_YES]")
     }
 }
-~~~
+```
