@@ -1,1 +1,1 @@
-include("structured-ngs-cli", "structured-ngs-service")
+include("gliding-soar-cli", "gliding-soar-common", "gliding-soar-service")
