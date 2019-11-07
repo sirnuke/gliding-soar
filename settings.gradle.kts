@@ -1,0 +1,1 @@
+include("structured-ngs-cli", "structured-ngs-service")
