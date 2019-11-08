@@ -65,3 +65,42 @@ struct("Channel", type=Input) {
     }
 }
 ```
+
+```glide
+input Channel {
+    members {
+        channel-id: String
+        service-id: String
+        server-id: String
+        metadata: Metadata
+    }
+    tags {
+        private: Boolean
+    }
+    matches {
+        is-private: Subst {
+            [ngs-is-tagged $binding $::Channel::tags::private $::NGS_YES]
+        }
+        is-public: Subst {
+            [ngs-is-tagged $binding $::Channel::tags::private $::NGS_NO]
+        }
+    }
+}
+```
+
+```glide
+interface ChannelLocation {
+    members {
+        channel-id: String
+        service-id: String
+        server-id: String
+    }
+}
+
+object Response: ChannelLocation {
+    members {
+        message: String
+        voice?: Boolean
+    }
+}
+```
