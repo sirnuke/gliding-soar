@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.ir.backend.js.compile
-
 plugins {
   base
   kotlin("jvm") version "1.3.50" apply false
