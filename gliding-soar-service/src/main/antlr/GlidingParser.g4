@@ -19,7 +19,9 @@ tags : TAGS OPEN_CURLY tag* CLOSE_CURLY;
 tag : IDENTIFIER (COLON IDENTIFIER)?;
 
 matches : MATCHES OPEN_CURLY match*;
-match : IDENTIFIER COLON IDENTIFIER RAW_TCL;
+match : IDENTIFIER COLON matchBody;
+matchBody : matchSubst;
+matchSubst: SUBST RAW_TCL;
 
 typeDecleration: OBJECT | INPUT | OUTPUT | INTERFACE;
 

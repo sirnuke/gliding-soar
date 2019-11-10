@@ -12,6 +12,8 @@ MEMBERS : 'members';
 TAGS : 'tags';
 MATCHES : 'matches';
 
+SUBST : 'Subst';
+
 OPTIONAL : '?';
 REQUIRED : '!';
 MULTIIPLE : '+';
