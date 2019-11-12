@@ -1,6 +1,4 @@
-parser grammar GlidingParser;
-
-options { tokenVocab = GlidingLexer; }
+grammar GlidingSoar;
 
 glidingSoar : element*;
 
@@ -26,3 +24,32 @@ matchSubst: SUBST RAW_TCL;
 typeDecleration: OBJECT | INPUT | OUTPUT | INTERFACE;
 
 typeExtends : COLON IDENTIFIER (COMMA IDENTIFIER)*;
+
+COMMA : ',';
+COLON : ':';
+
+OBJECT    : 'object';
+INPUT     : 'input';
+OUTPUT    : 'output';
+INTERFACE : 'interface';
+
+MEMBERS : 'members';
+TAGS : 'tags';
+MATCHES : 'matches';
+
+SUBST : 'Subst';
+
+OPTIONAL : '?';
+REQUIRED : '!';
+MULTIIPLE : '+';
+
+RAW_TCL : '<<' .*? '>>';
+
+OPEN_CURLY : '{' ;
+CLOSE_CURLY : '}';
+
+IDENTIFIER : [a-zA-Z9-9\-_*]+;
+
+WHITESPACE : [ \t\r\n] -> skip;
+
+
