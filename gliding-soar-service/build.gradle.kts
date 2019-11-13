@@ -17,4 +17,12 @@ dependencies {
   api(project(":gliding-soar-common"))
   implementation("org.antlr:antlr4-runtime:$antlrVersion")
   antlr("org.antlr:antlr4:$antlrVersion")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.5.2")
+}
+
+tasks.test {
+  useJUnitPlatform()
+  testLogging {
+    events("passed", "skipped", "failed")
+  }
 }
