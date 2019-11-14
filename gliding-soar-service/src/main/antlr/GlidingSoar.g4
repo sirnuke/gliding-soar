@@ -2,9 +2,13 @@ grammar GlidingSoar;
 
 glidingSoar : element*;
 
-element : deceleration body;
+element : declaration body;
 
-deceleration : typeDecleration IDENTIFIER typeExtends?;
+declaration : type IDENTIFIER extends_?;
+
+type: OBJECT | INPUT | OUTPUT | INTERFACE;
+
+extends_ : COLON IDENTIFIER (COMMA IDENTIFIER)*;
 
 body : OPEN_CURLY members? tags? matches? CLOSE_CURLY;
 
@@ -20,10 +24,6 @@ matches : MATCHES OPEN_CURLY match*;
 match : IDENTIFIER COLON matchBody;
 matchBody : matchSubst;
 matchSubst: SUBST RAW_TCL;
-
-typeDecleration: OBJECT | INPUT | OUTPUT | INTERFACE;
-
-typeExtends : COLON IDENTIFIER (COMMA IDENTIFIER)*;
 
 COMMA : ',';
 COLON : ':';
