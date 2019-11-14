@@ -48,6 +48,10 @@ RAW_TCL : '<<' .*? '>>';
 OPEN_CURLY : '{' ;
 CLOSE_CURLY : '}';
 
+TCL_LINE_COMMENT : '#'  ~[\r\n]* -> skip;
+CPP_LINE_COMMENT : '//' ~[\r\n]* -> skip;
+C_BLOCK_COMMENT  : '/*' .*? '*/' -> skip;
+
 IDENTIFIER : [a-zA-Z9-9\-_*]+;
 
 WHITESPACE : [ \t\r\n] -> skip;
