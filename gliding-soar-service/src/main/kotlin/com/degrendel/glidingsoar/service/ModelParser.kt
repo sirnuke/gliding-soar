@@ -15,7 +15,7 @@ fun parseString(contents: String): ParserResults
   val results = ArrayList<Element>()
   val body = ArrayList<String>()
   var inBody = false
-  val parser = ElementParser()
+  val parser = BlockParser()
   contents.lines().forEachIndexed { index, line ->
     when (inBody)
     {

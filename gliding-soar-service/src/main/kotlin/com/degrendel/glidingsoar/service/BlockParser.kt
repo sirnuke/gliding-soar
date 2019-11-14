@@ -12,7 +12,7 @@ sealed class ParserResults
 data class ParseSuccess(val elements: List<Element>) : ParserResults()
 data class ParseFailure(val location: Location, val message: String) : ParserResults()
 
-class ElementParser : GlidingSoarBaseVisitor<List<Element>>()
+class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
 {
   private lateinit var source: Location
 
