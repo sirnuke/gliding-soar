@@ -61,4 +61,16 @@ class BlockParserTests
     assertTrue(element.declaration.extends.isEmpty())
     assertEquals("Simple", element.declaration.identifier.value)
   }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["hello", "HELLO", "hel*oo", "-", "*", "-*-*-*---*"])
+  fun `Parses various method names`(name: String)
+  {
+    val block = """
+      object $name {
+      }
+    """.trimIndent()
+    val element = assertSuccess(block).elements.first()
+    assertEquals(name, element.declaration.identifier.value)
+  }
 }
