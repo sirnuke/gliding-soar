@@ -15,7 +15,7 @@ body : OPEN_CURLY members? tags? matches? CLOSE_CURLY;
 members : MEMBERS OPEN_CURLY member* CLOSE_CURLY;
 member : IDENTIFIER COLON IDENTIFIER classifier?;
 
-classifier : OPTIONAL | REQUIRED | MULTIIPLE;
+classifier : OPTIONAL | REQUIRED | MULTIPLE;
 
 tags : TAGS OPEN_CURLY tag* CLOSE_CURLY;
 tag : IDENTIFIER (COLON IDENTIFIER)?;
@@ -41,7 +41,7 @@ SUBST : 'Subst';
 
 OPTIONAL : '?';
 REQUIRED : '!';
-MULTIIPLE : '+';
+MULTIPLE : '+';
 
 RAW_TCL : '<<' .*? '>>';
 
@@ -52,7 +52,10 @@ TCL_LINE_COMMENT : '#'  ~[\r\n]* -> skip;
 CPP_LINE_COMMENT : '//' ~[\r\n]* -> skip;
 C_BLOCK_COMMENT  : '/*' .*? '*/' -> skip;
 
-IDENTIFIER : [a-zA-Z9-9\-_*]+;
+IDENTIFIER : IDENTIFIER_FIRST IDENTIFIER_REST*;
+
+fragment IDENTIFIER_FIRST : [a-zA-Z\-_*];
+fragment IDENTIFIER_REST : [a-zA-Z0-9\-_*];
 
 WHITESPACE : [ \t\r\n] -> skip;
 
