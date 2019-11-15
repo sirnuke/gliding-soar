@@ -10,7 +10,9 @@ type: OBJECT | INPUT | OUTPUT | INTERFACE;
 
 extends_ : COLON IDENTIFIER (COMMA IDENTIFIER)*;
 
-body : OPEN_CURLY members? tags? matches? CLOSE_CURLY;
+body : OPEN_CURLY bodyElement* CLOSE_CURLY;
+
+bodyElement : members | tags | matches;
 
 members : MEMBERS OPEN_CURLY member* CLOSE_CURLY;
 member : IDENTIFIER COLON IDENTIFIER classifier?;

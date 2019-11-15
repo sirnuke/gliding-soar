@@ -83,8 +83,26 @@ class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
 
     override fun visitBody(ctx: GlidingSoarParser.BodyContext): Body
     {
-      // TODO: When AST supports it, actually parse the body
-      return Body(symbolToLocation(ctx.CLOSE_CURLY().symbol))
+      val members = ctx.bodyElement().filter { it.members() != null }.map { it.members().member().map { member -> visitMember(member) } }.flatten()
+      val tags = ctx.bodyElement().filter { it.tags() != null }.map { it.tags().tag().map { tag -> visitTag(tag) } }.flatten()
+      val matches = ctx.bodyElement().filter { it.matches() != null }.map { it.matches().match().map { match -> visitMatch(match) } }.flatten()
+      return Body(symbolToLocation(ctx.CLOSE_CURLY().symbol), members, tags, matches)
+    }
+
+    // TODO: Actually parse member/tag/match values
+    override fun visitMember(ctx: GlidingSoarParser.MemberContext): Member
+    {
+      return Member(symbolToLocation(ctx.start))
+    }
+
+    override fun visitTag(ctx: GlidingSoarParser.TagContext): Tag
+    {
+      return Tag(symbolToLocation(ctx.start))
+    }
+
+    override fun visitMatch(ctx: GlidingSoarParser.MatchContext): Match
+    {
+      return Match(symbolToLocation(ctx.start))
     }
 
     fun convertIdentifier(identifier: TerminalNode) = Identifier(symbolToLocation(identifier.symbol), identifier.symbol.text)
