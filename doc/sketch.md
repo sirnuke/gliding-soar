@@ -68,22 +68,21 @@ struct("Channel", type=Input) {
 
 ```glide
 input Channel {
-    members {
+    parameters {
         channel-id: String
         service-id: String
         server-id: String
         metadata: Metadata
     }
-    tags {
-        private: Boolean
+    members {
+        i tag private: Boolean
+        o tag other: Tag
     }
     matches {
-        is-private: Subst {
-            [ngs-is-tagged $binding $::Channel::tags::private $::NGS_YES]
-        }
-        is-public: Subst {
-            [ngs-is-tagged $binding $::Channel::tags::private $::NGS_NO]
-        }
+        is-private: Subst
+            << [ngs-is-tagged $binding $::Channel::tags::private $::NGS_YES] >>
+        is-public: Subst
+            << [ngs-is-tagged $binding $::Channel::tags::private $::NGS_NO] >>
     }
 }
 ```
