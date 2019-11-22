@@ -103,3 +103,38 @@ object Response: ChannelLocation {
     }
 }
 ```
+
+```glide
+input Channel {
+    parameters {
+        channel-id: String
+        service-id: String
+        metadata: Metadata
+    }
+
+    elaborables {
+        tag private: Boolean
+    }
+
+    operables {
+        tag closed: Tag
+    }
+
+    matches {
+        is-private: Subst << >>
+    }
+}
+```
+
+```glide
+input Channel {
+    param channel-id: String
+    param service-id: String
+    param metadata: Metadata
+
+    i tag private: Boolean
+    o tag closed: Tag
+
+    subst is-private << >>
+}
+```
