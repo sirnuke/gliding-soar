@@ -138,3 +138,65 @@ input Channel {
     subst is-private << >>
 }
 ```
+
+```glide
+output Message: ChannelLocation {
+    param message: String
+}
+```
+
+```tcl
+
+namespace eval Message {
+    namespace export output output-by-operator
+
+    proc output { params } {
+        if params has binding {
+            set binding params['binding']
+        } else if parent object output-link {
+            upvar binding binding
+        } else if output binding set {
+            set binding production::output_binding
+        } else {
+            error "unable to resolve output binding"
+        }
+        set message params['message']
+        set channel-id params['channel-id']
+        set server-id params['server-id']
+        set service-id params['service-id']
+
+        return [ngs-create-typed-object-by]
+    }
+
+    proc output-by-operator { params } {
+        if params has binding {
+            set binding params['binding']
+        } else if parent object output-link {
+            upvar binding binding
+        } else if output binding set {
+            set binding production::output_binding
+        } else {
+            error "unable to resolve output binding"
+        }
+        set message params['message']
+        set channel-id params['channel-id']
+        set server-id params['server-id']
+        set service-id params['service-id']
+
+        if params has operator_binding {
+            set operator_binding params['operator_binding']
+            if production::has_operator[$operator_binding] {
+                error "Operator already set!"
+            }
+        } else {
+            if production::has_operator['default'] {
+                error "Default operator already set!"
+            }
+            set operator_binding ngs_default
+        }
+
+        return [ngs-create-typed-object-by-operator ...]
+    }
+}
+
+```
