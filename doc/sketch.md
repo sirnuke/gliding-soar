@@ -165,7 +165,7 @@ namespace eval Message {
         set server-id params['server-id']
         set service-id params['service-id']
 
-        return [ngs-create-typed-object-by]
+        return [ngs-create-attribute]
     }
 
     proc output-by-operator { params } {
@@ -195,8 +195,36 @@ namespace eval Message {
             set operator_binding ngs_default
         }
 
-        return [ngs-create-typed-object-by-operator ...]
+        return [ngs-create-attribute-by-operator ...]
     }
 }
 
+```
+
+```glide
+
+object Response: ChannelLocation {
+    param Message: String
+    param Cooldown: Int?
+
+    o tag dispensed: Tag
+
+    subst is-dispensed << [ngs-is-tagged $binding tags::dispensed] >>
+    subst has-cooldown-range { minimum maximum }
+        << [ngs-gte-lt $binding $minimum $maximum] >>
+}
+```
+
+```tcl
+namespace eval Response {
+    namespace export create create-by-operator bind has-channel-id has-server-id has-service-id has-tag-dispensed is-dispensed
+
+    proc create { args } {
+        ngs-create-typed-object
+    }
+
+    proc bind { args } {
+        bind to Response
+    }
+}
 ```
