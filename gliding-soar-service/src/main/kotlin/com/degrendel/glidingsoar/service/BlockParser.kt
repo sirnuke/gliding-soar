@@ -83,21 +83,21 @@ class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
 
     override fun visitBody(ctx: GlidingSoarParser.BodyContext): Body
     {
-      val members = ctx.bodyElement().filter { it.members() != null }.map { it.members().member().map { member -> visitMember(member) } }.flatten()
-      val tags = ctx.bodyElement().filter { it.tags() != null }.map { it.tags().tag().map { tag -> visitTag(tag) } }.flatten()
-      val matches = ctx.bodyElement().filter { it.matches() != null }.map { it.matches().match().map { match -> visitMatch(match) } }.flatten()
-      return Body(symbolToLocation(ctx.CLOSE_CURLY().symbol), members, tags, matches)
+      val parameters = ctx.bodyElement().filter { it.parameter() != null }.map { visitParameter(it.parameter()) }
+      val members = ctx.bodyElement().filter { it.member() != null }.map { visitMember(it.member()) }
+      val matches = ctx.bodyElement().filter { it.match() != null }.map { visitMatch(it.match()) }
+      return Body(symbolToLocation(ctx.OPEN_CURLY().symbol), parameters, members, matches)
+    }
+
+    override fun visitParameter(ctx: GlidingSoarParser.ParameterContext): Parameter
+    {
+      return Parameter(symbolToLocation(ctx.start))
     }
 
     // TODO: Actually parse member/tag/match values
     override fun visitMember(ctx: GlidingSoarParser.MemberContext): Member
     {
       return Member(symbolToLocation(ctx.start))
-    }
-
-    override fun visitTag(ctx: GlidingSoarParser.TagContext): Tag
-    {
-      return Tag(symbolToLocation(ctx.start))
     }
 
     override fun visitMatch(ctx: GlidingSoarParser.MatchContext): Match

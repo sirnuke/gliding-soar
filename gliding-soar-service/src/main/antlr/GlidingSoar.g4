@@ -12,37 +12,38 @@ extends_ : COLON IDENTIFIER (COMMA IDENTIFIER)*;
 
 body : OPEN_CURLY bodyElement* CLOSE_CURLY;
 
-bodyElement : members | tags | matches;
+bodyElement : parameter | member | match;
 
-members : MEMBERS OPEN_CURLY member* CLOSE_CURLY;
-member : IDENTIFIER COLON IDENTIFIER classifier?;
+parameter : PARAMETER IDENTIFIER COLON IDENTIFIER classifier;
 
-classifier : OPTIONAL | REQUIRED | MULTIPLE;
+member : (I_SUPPORT | O_SUPPORT) TAG? IDENTIFIER COLON IDENTIFIER classifier;
 
-tags : TAGS OPEN_CURLY tag* CLOSE_CURLY;
-tag : IDENTIFIER (COLON IDENTIFIER)?;
+classifier : MULTIPLE? OPTIONAL?;
 
-matches : MATCHES OPEN_CURLY match*;
-match : IDENTIFIER COLON matchBody;
-matchBody : matchSubst;
-matchSubst: SUBST RAW_TCL;
+match : (SUBST|PROC) IDENTIFIER arguments? EQUALS RAW_TCL;
+
+arguments : OPEN_CURLY IDENTIFIER+ RAW_TCL? CLOSE_CURLY;
 
 COMMA : ',';
 COLON : ':';
+EQUALS : '=';
 
 OBJECT    : 'object';
 INPUT     : 'input';
 OUTPUT    : 'output';
 INTERFACE : 'interface';
 
-MEMBERS : 'members';
-TAGS : 'tags';
-MATCHES : 'matches';
+PARAMETER : 'param';
 
-SUBST : 'Subst';
+I_SUPPORT : 'i';
+O_SUPPORT : 'o';
+
+TAG : 'tag';
+
+PROC : 'proc';
+SUBST : 'subst';
 
 OPTIONAL : '?';
-REQUIRED : '!';
 MULTIPLE : '+';
 
 RAW_TCL : '<<' .*? '>>';
