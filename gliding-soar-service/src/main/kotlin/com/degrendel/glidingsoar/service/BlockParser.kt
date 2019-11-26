@@ -91,23 +91,46 @@ class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
 
     override fun visitParameter(ctx: GlidingSoarParser.ParameterContext): Parameter
     {
-      return Parameter(symbolToLocation(ctx.start))
+      val identifier = convertIdentifier(ctx.IDENTIFIER(0))
+      val type = convertIdentifier(ctx.IDENTIFIER(1))
+      val multiple = ctx.MULTIPLE() != null
+      val optional = ctx.OPTIONAL() != null
+      return Parameter(symbolToLocation(ctx.start), identifier, type, multiple, optional)
     }
 
-    // TODO: Actually parse member/tag/match values
     override fun visitMember(ctx: GlidingSoarParser.MemberContext): Member
     {
-      return Member(symbolToLocation(ctx.start))
+      val identifier = convertIdentifier(ctx.IDENTIFIER(0))
+      val type = convertIdentifier(ctx.IDENTIFIER(1))
+      val tag = ctx.TAG() != null
+      val multiple = ctx.MULTIPLE() != null
+      if (ctx.I_SUPPORT() != null && ctx.O_SUPPORT() != null)
+        throw IllegalStateException("Found member that is both o support and i support!: $ctx")
+      return when
+      {
+        ctx.I_SUPPORT() != null -> IMember(symbolToLocation(ctx.start), tag, identifier, type, multiple)
+        ctx.O_SUPPORT() != null -> OMember(symbolToLocation(ctx.start), tag, identifier, type, multiple)
+        else -> throw IllegalStateException("Found member that is neither i support nor o support!: $ctx")
+      }
     }
 
     override fun visitMatch(ctx: GlidingSoarParser.MatchContext): Match
     {
-      return Match(symbolToLocation(ctx.start))
+      val identifier = convertIdentifier(ctx.IDENTIFIER())
+      val block = convertRawTcl(ctx.RAW_TCL())
+      return when
+      {
+        ctx.PROC() != null -> Proc(symbolToLocation(ctx.start), identifier, block)
+        ctx.SUBST() != null -> Subst(symbolToLocation(ctx.start), identifier, block)
+        else -> throw IllegalStateException("Found match that is neither proc nor subst!: $ctx")
+      }
     }
 
     fun convertIdentifier(identifier: TerminalNode) = Identifier(symbolToLocation(identifier.symbol), identifier.symbol.text)
+    fun convertRawTcl(rawTcl: TerminalNode) = RawTcl(symbolToLocation(rawTcl.symbol), rawTcl.symbol.text)
   }
 
 
   fun symbolToLocation(symbol: Token) = Location(source.line + symbol.line, symbol.charPositionInLine)
+
 }

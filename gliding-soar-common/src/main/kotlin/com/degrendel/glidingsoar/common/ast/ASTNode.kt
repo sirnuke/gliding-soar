@@ -12,3 +12,8 @@ data class Identifier(override val location: Location, val value: String) : ASTN
 {
   override val children = ArrayList<ASTNode>()
 }
+
+data class RawTcl(override val location: Location, val block: String) : ASTNode
+{
+  override val children = ArrayList<ASTNode>()
+}
