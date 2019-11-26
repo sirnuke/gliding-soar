@@ -118,6 +118,8 @@ class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
     {
       val identifier = convertIdentifier(ctx.IDENTIFIER())
       val block = convertRawTcl(ctx.RAW_TCL())
+      if (ctx.arguments() != null)
+        TODO("Arguments not yet implemented!")
       return when
       {
         ctx.PROC() != null -> Proc(symbolToLocation(ctx.start), identifier, block)
@@ -130,7 +132,5 @@ class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
     fun convertRawTcl(rawTcl: TerminalNode) = RawTcl(symbolToLocation(rawTcl.symbol), rawTcl.symbol.text)
   }
 
-
   fun symbolToLocation(symbol: Token) = Location(source.line + symbol.line, symbol.charPositionInLine)
-
 }
