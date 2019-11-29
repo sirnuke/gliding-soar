@@ -1,5 +1,6 @@
 package com.degrendel.glidingsoar.service
 
+import com.degrendel.glidingsoar.common.ValidationIssue
 import com.degrendel.glidingsoar.common.ast.*
 import com.degrendel.glidingsoar.service.grammar.GlidingSoarBaseVisitor
 import com.degrendel.glidingsoar.service.grammar.GlidingSoarLexer
@@ -11,6 +12,61 @@ import org.antlr.v4.runtime.tree.TerminalNode
 sealed class ParserResults
 data class ParseSuccess(val elements: List<Element>) : ParserResults()
 data class ParseFailure(val location: Location, val message: String) : ParserResults()
+
+class Model
+{
+  fun addElements(elements: List<Element>)
+  {
+    TODO("Stub!")
+  }
+
+  fun validate(): List<ValidationIssue>
+  {
+    TODO("Stub!")
+  }
+}
+
+fun parseString(contents: String): ParserResults
+{
+  // TODO: This is kinda painful
+  // Being able to filter content on a start/stop predicate feels like it should be possible, but maybe not in Kotlin?
+  // Could probably also adapt the grammar to ignore non comments and whatnot
+  // Could also also turn this into a single monster multiline regex but Regex: now you have two problems
+  val start = Regex("^\\s*#\\s*<glide>\\s*$")
+  val content = Regex("^\\s*#\\s*(?<content>.*)$")
+  val stop = Regex("^\\s*#\\s*</glide>\\s*$")
+  val results = ArrayList<Element>()
+  val body = ArrayList<String>()
+  var inBody = false
+  val parser = BlockParser()
+  contents.lines().forEachIndexed { index, line ->
+    when (inBody)
+    {
+      false -> if (start.matches(line)) inBody = true
+      true ->
+      {
+        if (stop.matches(line))
+        {
+          inBody = false
+          when (val result = parser.parse(Location(index, 0), body.joinToString(separator = "\n")))
+          {
+            is ParseSuccess -> results.addAll(result.elements)
+            is ParseFailure -> return result
+          }
+        }
+        else
+        {
+          val inner = content.find(line)
+          if (inner != null)
+            body.add(inner.groups["content"]!!.value)
+          else
+            return ParseFailure(Location(index + 1, 0), "Unexpected line, expected line of content or </glide>")
+        }
+      }
+    }
+  }
+  return ParseSuccess(results)
+}
 
 class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
 {
