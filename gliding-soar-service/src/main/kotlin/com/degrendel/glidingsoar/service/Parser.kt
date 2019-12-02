@@ -15,9 +15,11 @@ data class ParseFailure(val location: Location, val message: String) : ParserRes
 
 class Model
 {
+  private val elements = ArrayList<Element>()
+
   fun addElements(elements: List<Element>)
   {
-    TODO("Stub!")
+    this.elements.addAll(elements)
   }
 
   fun validate(): List<ValidationIssue>
