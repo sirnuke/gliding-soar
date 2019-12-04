@@ -16,6 +16,7 @@ tasks.generateGrammarSource {
 dependencies {
   api(project(":gliding-soar-common"))
   implementation("org.antlr:antlr4-runtime:$antlrVersion")
+  implementation("org.antlr:ST4:4.1")
   antlr("org.antlr:antlr4:$antlrVersion")
   testImplementation("org.junit.jupiter:junit-jupiter:5.5.2")
 }
