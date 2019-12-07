@@ -2,11 +2,13 @@ grammar GlidingSoar;
 
 glidingSoar : element*;
 
-element : type IDENTIFIER extends_? body;
+element : type namespace? IDENTIFIER extends_? body;
 
 type: OBJECT | INPUT | OUTPUT | INTERFACE;
 
-extends_ : COLON IDENTIFIER (COMMA IDENTIFIER)*;
+namespace : (IDENTIFIER NAMESPACE)+;
+
+extends_ : COLON namespace? IDENTIFIER (COMMA namespace? IDENTIFIER)*;
 
 body : OPEN_CURLY bodyElement* CLOSE_CURLY;
 
@@ -23,6 +25,7 @@ arguments : OPEN_CURLY IDENTIFIER+ RAW_TCL? CLOSE_CURLY;
 COMMA : ',';
 COLON : ':';
 EQUALS : '=';
+NAMESPACE : '::';
 
 OBJECT    : 'object';
 INPUT     : 'input';
