@@ -1,28 +1,22 @@
 package com.degrendel.glidingsoar.service
 
+import com.degrendel.glidingsoar.common.GlideParseException
+import com.degrendel.glidingsoar.common.Model
+import com.degrendel.glidingsoar.common.RootNamespace
 import com.degrendel.glidingsoar.common.ValidationIssue
 import com.degrendel.glidingsoar.common.ast.Element
 import com.degrendel.glidingsoar.common.ast.Location
 import org.stringtemplate.v4.STGroupFile
+import java.net.URI
 import java.time.Instant
 
-fun main()
+class ModelImpl: Model
 {
-  val model = Model()
-  println(model.bundle())
-}
-
-class Model
-{
+  private val root = RootNamespace()
   private val elements = ArrayList<Element>()
   private val template = STGroupFile(javaClass.getResource("/templates/template.stg"))
 
-  fun addElements(elements: List<Element>)
-  {
-    this.elements.addAll(elements)
-  }
-
-  fun bundle(): String
+  override fun bundle(): String
   {
     val bundle = template.getInstanceOf("bundle")
     bundle.add("model", this)
@@ -31,7 +25,17 @@ class Model
     return bundle.render()
   }
 
-  fun parseString(contents: String): ParserResults
+  override fun parseFile(uri: URI)
+  {
+    TODO("Stub!")
+  }
+
+  override fun parseString(source: String, contents: String)
+  {
+    TODO("Stub!")
+  }
+
+  private fun parseContents(source: String, contents: String)
   {
     // TODO: This is kinda painful
     // Being able to filter content on a start/stop predicate feels like it should be possible, but maybe not in Kotlin?
@@ -53,10 +57,10 @@ class Model
           if (stop.matches(line))
           {
             inBody = false
-            when (val result = parser.parse(Location(index, 0), body.joinToString(separator = "\n")))
+            when (val result = parser.parse(Location(source, index, 0), body.joinToString(separator = "\n")))
             {
               is ParseSuccess -> results.addAll(result.elements)
-              is ParseFailure -> return result
+              is ParseFailure -> throw GlideParseException(result.toHumanString())
             }
           }
           else
@@ -65,13 +69,15 @@ class Model
             if (inner != null)
               body.add(inner.groups["content"]!!.value)
             else
-              return ParseFailure(Location(index + 1, 0), "Unexpected line, expected line of content or </glide>")
+              throw GlideParseException(ParseFailure(Location(source, index + 1, 0), "Unexpected line, expected line of content or </glide>").toHumanString())
           }
         }
       }
     }
-    return ParseSuccess(results)
-
+    if (inBody)
+      throw GlideParseException(ParseFailure(Location(source, contents.lines().size, 0), "Unterminated glide block, expected </glide>").toHumanString())
+    elements.addAll(results)
+    TODO("Add to namespace")
   }
 
   fun validate(): List<ValidationIssue>

@@ -11,6 +11,10 @@ import org.antlr.v4.runtime.tree.TerminalNode
 sealed class ParserResults
 data class ParseSuccess(val elements: List<Element>) : ParserResults()
 data class ParseFailure(val location: Location, val message: String) : ParserResults()
+{
+  fun toHumanString() =
+    "Unable to parse at ${location.line}@${location.offset}"
+}
 
 class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
 {
@@ -21,7 +25,7 @@ class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
     override fun syntaxError(recognizer: Recognizer<*, *>, offendingSymbol: Any?, line: Int, charPositionInLine: Int, msg: String, e: RecognitionException?)
     {
       // TODO: Off by one error (is the first line of block 1 or 0?)
-      source = Location(line + source.line, charPositionInLine)
+      source = Location(source.source, line + source.line, charPositionInLine)
       throw ParseCancellationException("Grammar exception: $msg")
     }
   }
@@ -127,5 +131,5 @@ class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
     fun convertRawTcl(rawTcl: TerminalNode) = RawTcl(symbolToLocation(rawTcl.symbol), rawTcl.symbol.text)
   }
 
-  fun symbolToLocation(symbol: Token) = Location(source.line + symbol.line, symbol.charPositionInLine)
+  fun symbolToLocation(symbol: Token) = Location(source.source, source.line + symbol.line, symbol.charPositionInLine)
 }

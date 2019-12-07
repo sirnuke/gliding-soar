@@ -28,7 +28,7 @@ class BlockParserTests
   }
 
   private val parser = BlockParser()
-  private val location = Location(1, 0)
+  private val location = Location("\$junit", 1, 0)
 
   private fun assertSuccess(block: String): ParseSuccess
   {
