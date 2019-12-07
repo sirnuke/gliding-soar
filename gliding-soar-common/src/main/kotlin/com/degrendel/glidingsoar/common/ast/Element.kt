@@ -3,12 +3,12 @@ package com.degrendel.glidingsoar.common.ast
 sealed class Element : ASTNode
 {
   final override val children = ArrayList<ASTNode>()
-  abstract val identifier: Identifier
-  abstract val extends: List<Identifier>
+  abstract val identifier: ResolvedIdentifier
+  abstract val extends: List<ResolvedIdentifier>
   abstract val body: Body
 }
 
-data class Input(override val location: Location, override val identifier: Identifier, override val extends: List<Identifier>, override val body: Body) : Element()
+data class Input(override val location: Location, override val identifier: ResolvedIdentifier, override val extends: List<ResolvedIdentifier>, override val body: Body) : Element()
 {
   init
   {
@@ -18,7 +18,7 @@ data class Input(override val location: Location, override val identifier: Ident
   }
 }
 
-data class Object(override val location: Location, override val identifier: Identifier, override val extends: List<Identifier>, override val body: Body) : Element()
+data class Object(override val location: Location, override val identifier: ResolvedIdentifier, override val extends: List<ResolvedIdentifier>, override val body: Body) : Element()
 {
   init
   {
@@ -28,7 +28,7 @@ data class Object(override val location: Location, override val identifier: Iden
   }
 }
 
-data class Output(override val location: Location, override val identifier: Identifier, override val extends: List<Identifier>, override val body: Body) : Element()
+data class Output(override val location: Location, override val identifier: ResolvedIdentifier, override val extends: List<ResolvedIdentifier>, override val body: Body) : Element()
 {
   init
   {
@@ -38,7 +38,7 @@ data class Output(override val location: Location, override val identifier: Iden
   }
 }
 
-data class Interface(override val location: Location, override val identifier: Identifier, override val extends: List<Identifier>, override val body: Body) : Element()
+data class Interface(override val location: Location, override val identifier: ResolvedIdentifier, override val extends: List<ResolvedIdentifier>, override val body: Body) : Element()
 {
   init
   {

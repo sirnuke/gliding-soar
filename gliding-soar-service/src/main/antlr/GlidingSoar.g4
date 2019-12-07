@@ -2,13 +2,13 @@ grammar GlidingSoar;
 
 glidingSoar : element*;
 
-element : type namespace? IDENTIFIER extends_? body;
+element : type resolvedIdentifier extends_? body;
 
 type: OBJECT | INPUT | OUTPUT | INTERFACE;
 
-namespace : (IDENTIFIER NAMESPACE)+;
+resolvedIdentifier : (IDENTIFIER NAMESPACE)* IDENTIFIER;
 
-extends_ : COLON namespace? IDENTIFIER (COMMA namespace? IDENTIFIER)*;
+extends_ : COLON resolvedIdentifier (COMMA resolvedIdentifier)*;
 
 body : OPEN_CURLY bodyElement* CLOSE_CURLY;
 

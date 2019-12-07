@@ -53,11 +53,11 @@ class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
   {
     override fun visitElement(ctx: GlidingSoarParser.ElementContext): Element
     {
-      val identifier = convertIdentifier(ctx.IDENTIFIER())
+      val identifier = visitResolvedIdentifier(ctx.resolvedIdentifier())
       val extends = if (ctx.extends_() == null)
-        ArrayList<Identifier>()
+        ArrayList<ResolvedIdentifier>()
       else
-        ctx.extends_().IDENTIFIER().map { convertIdentifier(it) }
+        ctx.extends_().resolvedIdentifier().map { visitResolvedIdentifier(it)}
       val body = visitBody(ctx.body())
       val location = symbolToLocation(ctx.start)
       return when
@@ -68,6 +68,12 @@ class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
         ctx.type().OBJECT() != null -> Object(location, identifier, extends, body)
         else -> throw IllegalStateException("Found element $ctx with unknown/unhandled type")
       }
+    }
+
+    override fun visitResolvedIdentifier(ctx: GlidingSoarParser.ResolvedIdentifierContext): ResolvedIdentifier
+    {
+      val namespace = ctx.IDENTIFIER().subList(0, ctx.IDENTIFIER().size - 1).map { convertIdentifier(it) }
+      return ResolvedIdentifier(symbolToLocation(ctx.start), namespace, ctx.IDENTIFIER().last().text)
     }
 
     override fun visitBody(ctx: GlidingSoarParser.BodyContext): Body
