@@ -14,7 +14,7 @@ data class NamespaceSymbol(val namespace: ChildNamespace) : Symbol()
 
 data class ElementSymbol(val element: Element): Symbol()
 {
-  override val name = element.declaration.identifier.value
+  override val name = element.identifier.value
 }
 
 sealed class Namespace

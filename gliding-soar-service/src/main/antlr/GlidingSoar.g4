@@ -2,9 +2,7 @@ grammar GlidingSoar;
 
 glidingSoar : element*;
 
-element : declaration body;
-
-declaration : type IDENTIFIER extends_?;
+element : type IDENTIFIER extends_? body;
 
 type: OBJECT | INPUT | OUTPUT | INTERFACE;
 

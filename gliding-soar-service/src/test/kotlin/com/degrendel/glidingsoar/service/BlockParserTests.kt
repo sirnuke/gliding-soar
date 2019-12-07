@@ -81,9 +81,9 @@ class BlockParserTests
     val elements = assertSuccess(block).elements
     assertEquals(1, elements.size)
     val element = elements.first()
-    assertEquals(type, element.declaration.type::class)
-    assertTrue(element.declaration.extends.isEmpty())
-    assertEquals("Simple", element.declaration.identifier.value)
+    assertEquals(type, element::class)
+    assertTrue(element.extends.isEmpty())
+    assertEquals("Simple", element.identifier.value)
   }
 
   @ParameterizedTest
@@ -95,7 +95,7 @@ class BlockParserTests
       }
     """.trimIndent()
     val element = assertSuccess(block).elements.first()
-    assertEquals(name, element.declaration.identifier.value)
+    assertEquals(name, element.identifier.value)
   }
 
 

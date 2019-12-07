@@ -1,6 +1,5 @@
 package com.degrendel.glidingsoar.service
 
-import com.degrendel.glidingsoar.common.ValidationIssue
 import com.degrendel.glidingsoar.common.ast.*
 import com.degrendel.glidingsoar.service.grammar.GlidingSoarBaseVisitor
 import com.degrendel.glidingsoar.service.grammar.GlidingSoarLexer
@@ -54,31 +53,20 @@ class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
   {
     override fun visitElement(ctx: GlidingSoarParser.ElementContext): Element
     {
-      val declaration = visitDeclaration(ctx.declaration())
-      val body = visitBody(ctx.body())
-      return Element(symbolToLocation(ctx.start), declaration, body)
-    }
-
-    override fun visitDeclaration(ctx: GlidingSoarParser.DeclarationContext): Declaration
-    {
       val identifier = convertIdentifier(ctx.IDENTIFIER())
-      val type = visitType(ctx.type())
       val extends = if (ctx.extends_() == null)
         ArrayList<Identifier>()
       else
         ctx.extends_().IDENTIFIER().map { convertIdentifier(it) }
-      return Declaration(symbolToLocation(ctx.start), type, identifier, extends)
-    }
-
-    override fun visitType(ctx: GlidingSoarParser.TypeContext): Type
-    {
+      val body = visitBody(ctx.body())
+      val location = symbolToLocation(ctx.start)
       return when
       {
-        ctx.INPUT() != null -> Input(symbolToLocation(ctx.INPUT().symbol))
-        ctx.OBJECT() != null -> Object(symbolToLocation(ctx.OBJECT().symbol))
-        ctx.OUTPUT() != null -> Output(symbolToLocation(ctx.OUTPUT().symbol))
-        ctx.INTERFACE() != null -> Interface(symbolToLocation(ctx.INTERFACE().symbol))
-        else -> throw IllegalStateException("Found type $ctx that isn't input/object/output/interface")
+        ctx.type().INPUT() != null -> Input(location, identifier, extends, body)
+        ctx.type().INTERFACE() != null -> Interface(location, identifier, extends, body)
+        ctx.type().OUTPUT() != null -> Output(location, identifier, extends, body)
+        ctx.type().OBJECT() != null -> Object(location, identifier, extends, body)
+        else -> throw IllegalStateException("Found element $ctx with unknown/unhandled type")
       }
     }
 
