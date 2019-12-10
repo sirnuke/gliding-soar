@@ -3,7 +3,6 @@ package com.degrendel.glidingsoar.service
 import com.degrendel.glidingsoar.common.GlideParseException
 import com.degrendel.glidingsoar.common.Model
 import com.degrendel.glidingsoar.common.RootNamespace
-import com.degrendel.glidingsoar.common.ValidationIssue
 import com.degrendel.glidingsoar.common.ast.Element
 import com.degrendel.glidingsoar.common.ast.Location
 import org.stringtemplate.v4.STGroupFile
@@ -79,10 +78,5 @@ class ModelImpl: Model
       throw GlideParseException(ParseFailure(Location(source, contents.lines().size, 0), "Unterminated glide block, expected </glide>").toHumanString())
     elements.addAll(results)
     root.addElements(results)
-  }
-
-  fun validate(): List<ValidationIssue>
-  {
-    TODO("Stub!")
   }
 }

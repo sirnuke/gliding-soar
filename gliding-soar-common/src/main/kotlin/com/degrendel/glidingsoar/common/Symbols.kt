@@ -3,7 +3,6 @@ package com.degrendel.glidingsoar.common
 import com.degrendel.glidingsoar.common.ast.ASTNode
 import com.degrendel.glidingsoar.common.ast.Element
 import com.degrendel.glidingsoar.common.ast.Identifier
-import com.degrendel.glidingsoar.common.ast.ResolvedIdentifier
 
 sealed class Symbol
 {
@@ -21,9 +20,6 @@ data class ElementSymbol(val element: Element) : Symbol()
   override val name = element.identifier.value
   override val firstReference = element
 }
-
-class DuplicateSymbolException(message: String, name: String, first: ASTNode, second: ASTNode)
-  : Exception("Duplicate symbol reference of '$name' @ ${first.location} and ${second.location}: $message")
 
 sealed class Namespace
 {
