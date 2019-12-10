@@ -7,6 +7,12 @@ interface ASTNode
 }
 
 data class Location(val source: String, val line: Int, val offset: Int)
+{
+  override fun toString(): String
+  {
+    return "$source@$line:$offset"
+  }
+}
 
 data class Identifier(override val location: Location, val value: String) : ASTNode
 {
