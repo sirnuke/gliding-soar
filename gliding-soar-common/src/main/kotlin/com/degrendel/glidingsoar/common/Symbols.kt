@@ -61,7 +61,19 @@ sealed class Namespace
   protected fun addElement(path: Iterator<Identifier>, element: Element)
   {
     if (!path.hasNext())
+    {
+      val existing = _symbols[element.identifier.value]
+      if (existing != null)
+      {
+        val message = when (existing)
+        {
+          is NamespaceSymbol -> "Symbol already referenced as namespace"
+          is ElementSymbol -> "Symbol already defined as element"
+        }
+        throw DuplicateSymbolException(message, element.identifier.value, existing.firstReference, element)
+      }
       addElementSymbol(element)
+    }
     else
     {
       val child = path.next()
