@@ -7,6 +7,7 @@ import com.degrendel.glidingsoar.common.ValidationIssue
 import com.degrendel.glidingsoar.common.ast.Element
 import com.degrendel.glidingsoar.common.ast.Location
 import org.stringtemplate.v4.STGroupFile
+import java.io.File
 import java.net.URI
 import java.time.Instant
 
@@ -27,12 +28,12 @@ class ModelImpl: Model
 
   override fun parseFile(uri: URI)
   {
-    TODO("Stub!")
+    parseContents(uri.path, File(uri.path).readText())
   }
 
   override fun parseString(source: String, contents: String)
   {
-    TODO("Stub!")
+    parseContents(source, contents)
   }
 
   private fun parseContents(source: String, contents: String)
@@ -77,7 +78,7 @@ class ModelImpl: Model
     if (inBody)
       throw GlideParseException(ParseFailure(Location(source, contents.lines().size, 0), "Unterminated glide block, expected </glide>").toHumanString())
     elements.addAll(results)
-    TODO("Add to namespace")
+    root.addElements(results)
   }
 
   fun validate(): List<ValidationIssue>
