@@ -11,7 +11,7 @@ import java.io.File
 import java.net.URI
 import java.time.Instant
 
-class ModelImpl(val arguments: List<String>?): Model
+class ModelImpl(private val arguments: Array<String>?): Model
 {
   private val root = RootNamespace()
   private val elements = ArrayList<Element>()
@@ -24,6 +24,7 @@ class ModelImpl(val arguments: List<String>?): Model
     bundle.add("version", Version.VERSION)
     bundle.add("when", Instant.now())
     bundle.add("arguments", arguments)
+    bundle.add("elements", elements)
     return bundle.render()
   }
 
