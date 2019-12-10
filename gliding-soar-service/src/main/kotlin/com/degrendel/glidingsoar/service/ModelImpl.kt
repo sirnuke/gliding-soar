@@ -3,6 +3,7 @@ package com.degrendel.glidingsoar.service
 import com.degrendel.glidingsoar.common.GlideParseException
 import com.degrendel.glidingsoar.common.Model
 import com.degrendel.glidingsoar.common.RootNamespace
+import com.degrendel.glidingsoar.common.Version
 import com.degrendel.glidingsoar.common.ast.Element
 import com.degrendel.glidingsoar.common.ast.Location
 import org.stringtemplate.v4.STGroupFile
@@ -10,7 +11,7 @@ import java.io.File
 import java.net.URI
 import java.time.Instant
 
-class ModelImpl: Model
+class ModelImpl(val arguments: List<String>?): Model
 {
   private val root = RootNamespace()
   private val elements = ArrayList<Element>()
@@ -20,8 +21,9 @@ class ModelImpl: Model
   {
     val bundle = template.getInstanceOf("bundle")
     bundle.add("model", this)
-    bundle.add("version", "TODO")
+    bundle.add("version", Version.VERSION)
     bundle.add("when", Instant.now())
+    bundle.add("arguments", arguments)
     return bundle.render()
   }
 
