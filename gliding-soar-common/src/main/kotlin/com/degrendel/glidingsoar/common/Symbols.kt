@@ -1,21 +1,29 @@
 package com.degrendel.glidingsoar.common
 
+import com.degrendel.glidingsoar.common.ast.ASTNode
 import com.degrendel.glidingsoar.common.ast.Element
+import com.degrendel.glidingsoar.common.ast.Identifier
+import com.degrendel.glidingsoar.common.ast.ResolvedIdentifier
 
 sealed class Symbol
 {
   abstract val name: String
+  abstract val firstReference: ASTNode
 }
 
-data class NamespaceSymbol(val namespace: ChildNamespace) : Symbol()
+data class NamespaceSymbol(val namespace: ChildNamespace, override val firstReference: ASTNode) : Symbol()
 {
   override val name = namespace.name
 }
 
-data class ElementSymbol(val element: Element): Symbol()
+data class ElementSymbol(val element: Element) : Symbol()
 {
   override val name = element.identifier.value
+  override val firstReference = element
 }
+
+class DuplicateSymbolException(message: String, name: String, first: ASTNode, second: ASTNode)
+  : Exception("Duplicate symbol reference of '$name' @ ${first.location} and ${second.location}: $message")
 
 sealed class Namespace
 {
@@ -34,23 +42,49 @@ sealed class Namespace
   val elements: List<Element>
     get() = _elements
 
-  fun addNamespace(namespace: ChildNamespace)
+  private fun addNamespaceSymbol(namespace: ChildNamespace, reference: ASTNode): NamespaceSymbol
   {
     _children.add(namespace)
-    addSymbol(NamespaceSymbol(namespace))
+    val symbol = NamespaceSymbol(namespace, reference)
+    addSymbol(symbol)
+    return symbol
   }
 
-  fun addElement(element: Element)
+  private fun addElementSymbol(element: Element): ElementSymbol
   {
     _elements.add(element)
-    addSymbol(ElementSymbol(element))
+    val symbol = ElementSymbol(element)
+    addSymbol(symbol)
+    return symbol
+  }
+
+  protected fun addElement(path: Iterator<Identifier>, element: Element)
+  {
+    if (!path.hasNext())
+      addElementSymbol(element)
+    else
+    {
+      val child = path.next()
+      val symbol = _symbols[child.value]
+      val childNamespace = if (symbol != null)
+      {
+        when (symbol)
+        {
+          is ElementSymbol -> throw DuplicateSymbolException("Symbol referenced as namespace, but exists as element", child.value, symbol.element, element)
+          is NamespaceSymbol -> symbol.namespace
+        }
+      }
+      else
+        addNamespaceSymbol(ChildNamespace(this, child.value), element).namespace
+      childNamespace.addElement(path, element)
+    }
   }
 
   private fun addSymbol(symbol: Symbol)
   {
     if (symbol.name in _symbols)
       throw IllegalStateException("Attempting to add new symbol ${symbol.name} ($symbol), conflicts with existing symbol ${_symbols[symbol.name]}")
-   _symbols[name] = symbol
+    _symbols[name] = symbol
   }
 }
 
@@ -58,6 +92,11 @@ class RootNamespace : Namespace()
 {
   override val name = ""
   override val fullyQualified = ""
+
+  fun addElements(elements: List<Element>)
+  {
+    elements.forEach { addElement(it.identifier.namespace.iterator(), it) }
+  }
 }
 
 data class ChildNamespace(val parent: Namespace, override val name: String) : Namespace()
