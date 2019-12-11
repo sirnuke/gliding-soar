@@ -34,8 +34,8 @@ body(e) ::= <<
 >>
 
 constructors(e) ::= <<
-<proc("create", trim((constructorArgs(e.body))), {<iconstructorBody(e.body)>}, true)>
-<proc("create-by-operator", trim((constructorArgs(e.body))), {<oconstructorBody(e.body)>}, true)>
+<proc("create", trim((constructorArgs(e.body))), {<iConstructorBody(e.body)>}, true)>
+<proc("create-by-operator", trim((constructorArgs(e.body))), {<oConstructorBody(e.body)>}, true)>
 >>
 
 constructorArgs(body) ::= << <body.requiredParameters:requiredArg(); separator=" "> <body.optionalParameters:optionalArg(); separator=" "> >>
@@ -44,12 +44,14 @@ requiredArg(p) ::= "<p.identifier.value>"
 
 optionalArg(p) ::= <<{ <p.identifier.value> "" }>>
 
-iconstructorBody(body) ::= <<
+iConstructorBody(body) ::= <<
+    <ifGlide("", "")>
 hello
 world
 >>
 
-oconstructorBody(body) ::= <<
+oConstructorBody(body) ::= <<
+    <ifGlide("", "")>
 yeah
 what
 >>
@@ -60,6 +62,14 @@ proc <name> { <args; separator=" "> } {
     <body>
 }
 
+>>
+
+ifGlide(block, notblock) ::= <<
+if {[namespace exists ::glide]} {
+    <block>
+}<if(notblock)> else {
+    <notblock>
+}<endif>
 >>
 
 export(name) ::= "namespace export <name>"
