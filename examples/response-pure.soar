@@ -1,0 +1,9 @@
+# <glide>
+# output Response {
+#   param service-id: String
+#   param server-id: String
+#   param channel-id: String
+#   param message: String
+#   param cooldown: Int?
+# }
+# </glide>
