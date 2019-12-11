@@ -1,5 +1,6 @@
 package com.degrendel.glidingsoar.cli
 
+import com.degrendel.glidingsoar.common.Version
 import com.degrendel.glidingsoar.common.logger
 import com.degrendel.glidingsoar.service.ModelImpl
 import picocli.CommandLine
@@ -35,6 +36,7 @@ class Main(private val args: Array<String>) : Callable<Int>
 
   override fun call(): Int
   {
+    L.info("Running Glide CLI version {}", Version.VERSION)
     val model = ModelImpl(args)
     targets.forEach {
       if (!it.exists())
