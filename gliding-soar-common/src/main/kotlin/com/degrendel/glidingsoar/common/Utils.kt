@@ -5,7 +5,10 @@ import org.slf4j.LoggerFactory
 
 object Version
 {
-  val VERSION = if (javaClass.`package` != null) javaClass.`package`.implementationVersion else "DEVELOPMENT"
+  val VERSION: String = if (javaClass.`package`.implementationVersion != null)
+    javaClass.`package`.implementationVersion
+  else
+    "DEVELOPMENT"
 }
 
 fun <R : Any> R.logger(): Lazy<Logger> = lazy { LoggerFactory.getLogger(this::class.java) }
