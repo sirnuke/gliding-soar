@@ -16,22 +16,18 @@ class ModelImpl(private val arguments: Array<String>?) : Model
 
   private val root = RootNamespace()
   private val elements = mutableListOf<Element>()
-  private val tangible_ = mutableListOf<Element>()
   private val template = STGroupFile(javaClass.getResource("/templates/template.stg"))
-
-  val tangible: List<Element> get() = tangible_
 
   override fun bundle(): String
   {
     L.info("Generating bundle")
-    // TODO: Need to validate inheritance
-    // TODO: Need to validate members of elements (no elaborated elements in outputs for example)
-    elements.filter { it.extends.isNotEmpty() }.forEach { _ -> TODO("Inheritance/interfaces not implemented!") }
+    root.validate()
     val bundle = template.getInstanceOf("bundle")
     bundle.add("model", this)
     bundle.add("version", Version.VERSION)
     bundle.add("when", Instant.now())
     bundle.add("arguments", arguments)
+    bundle.add("elements", elements)
     return bundle.render()
   }
 
@@ -91,6 +87,5 @@ class ModelImpl(private val arguments: Array<String>?) : Model
     L.info("Found {} elements", results.size)
     elements.addAll(results)
     root.addElements(results)
-    tangible_.addAll(results.filter { it !is Interface })
   }
 }
