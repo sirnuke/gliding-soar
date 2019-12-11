@@ -1,40 +1,49 @@
 package com.degrendel.glidingsoar.service
 
-import com.degrendel.glidingsoar.common.GlideParseException
-import com.degrendel.glidingsoar.common.Model
-import com.degrendel.glidingsoar.common.RootNamespace
-import com.degrendel.glidingsoar.common.Version
-import com.degrendel.glidingsoar.common.ast.Element
-import com.degrendel.glidingsoar.common.ast.Location
+import com.degrendel.glidingsoar.common.*
+import com.degrendel.glidingsoar.common.ast.*
 import org.stringtemplate.v4.STGroupFile
 import java.io.File
 import java.net.URI
 import java.time.Instant
 
-class ModelImpl(private val arguments: Array<String>?): Model
+class ModelImpl(private val arguments: Array<String>?) : Model
 {
+  companion object
+  {
+    val L by logger()
+  }
+
   private val root = RootNamespace()
-  private val elements = ArrayList<Element>()
+  private val elements = mutableListOf<Element>()
+  private val tangible_ = mutableListOf<Element>()
   private val template = STGroupFile(javaClass.getResource("/templates/template.stg"))
+
+  val tangible: List<Element> get() = tangible_
 
   override fun bundle(): String
   {
+    L.info("Generating bundle")
+    // TODO: Need to validate inheritance
+    // TODO: Need to validate members of elements (no elaborated elements in outputs for example)
+    elements.filter { it.extends.isNotEmpty() }.forEach { _ -> TODO("Inheritance/interfaces not implemented!") }
     val bundle = template.getInstanceOf("bundle")
     bundle.add("model", this)
     bundle.add("version", Version.VERSION)
     bundle.add("when", Instant.now())
     bundle.add("arguments", arguments)
-    bundle.add("elements", elements)
     return bundle.render()
   }
 
   override fun parseFile(uri: URI)
   {
+    L.info("Parsing URI {}", uri)
     parseContents(uri.path, File(uri.path).readText())
   }
 
   override fun parseString(source: String, contents: String)
   {
+    L.info("Parsing string from {} of length {}", source, contents.length)
     parseContents(source, contents)
   }
 
@@ -79,7 +88,9 @@ class ModelImpl(private val arguments: Array<String>?): Model
     }
     if (inBody)
       throw GlideParseException(ParseFailure(Location(source, contents.lines().size, 0), "Unterminated glide block, expected </glide>").toHumanString())
+    L.info("Found {} elements", results.size)
     elements.addAll(results)
     root.addElements(results)
+    tangible_.addAll(results.filter { it !is Interface })
   }
 }
