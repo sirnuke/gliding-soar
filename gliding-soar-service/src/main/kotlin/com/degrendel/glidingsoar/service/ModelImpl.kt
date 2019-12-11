@@ -27,7 +27,7 @@ class ModelImpl(private val arguments: Array<String>?) : Model
     bundle.add("version", Version.VERSION)
     bundle.add("when", Instant.now())
     bundle.add("arguments", arguments)
-    bundle.add("elements", elements)
+    bundle.add("root", root)
     return bundle.render()
   }
 
