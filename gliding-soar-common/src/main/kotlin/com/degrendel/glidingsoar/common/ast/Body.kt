@@ -18,7 +18,6 @@ data class Body(override val location: Location, val parameters: List<Parameter>
         optionalParameters.add(it)
       else
         requiredParameters.add(it)
-      println("Param ${it.identifier.value} optional? ${it.optional}")
     }
   }
 }
