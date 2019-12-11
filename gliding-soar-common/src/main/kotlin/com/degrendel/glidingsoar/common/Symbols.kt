@@ -94,16 +94,37 @@ sealed class Namespace
       throw IllegalStateException("Attempting to add new symbol ${symbol.name} ($symbol), conflicts with existing symbol ${_symbols[symbol.name]}")
     _symbols[name] = symbol
   }
+
+  internal fun validate(root: RootNamespace)
+  {
+    elements.forEach {
+      if (it.extends.isNotEmpty())
+        TODO("Inheritance/interfaces are not yet implemented")
+    }
+    // TODO: Confirm not invalid members (i.e. elaboratables or matches on output)
+    children.forEach { it.validate(root) }
+  }
 }
 
 class RootNamespace : Namespace()
 {
+  companion object
+  {
+    val L by logger()
+  }
+
   override val name = ""
   override val fullyQualified = ""
 
   fun addElements(elements: List<Element>)
   {
     elements.forEach { addElement(it.identifier.namespace.iterator(), it) }
+  }
+
+  fun validate()
+  {
+    L.info("Validating namespace symbols")
+    validate(this)
   }
 }
 
