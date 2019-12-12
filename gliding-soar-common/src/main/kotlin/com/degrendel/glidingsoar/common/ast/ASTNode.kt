@@ -17,6 +17,8 @@ data class Location(val source: String, val line: Int, val offset: Int)
 data class Identifier(override val location: Location, val value: String) : ASTNode
 {
   override val children = ArrayList<ASTNode>()
+
+  val lowercase = value.toLowerCase()
 }
 
 data class ResolvedIdentifier(override val location: Location, val namespace: List<Identifier>, val value: String) : ASTNode
@@ -27,6 +29,8 @@ data class ResolvedIdentifier(override val location: Location, val namespace: Li
   {
     children.addAll(namespace)
   }
+
+  val lowercase = value.toLowerCase()
 }
 
 data class RawTcl(override val location: Location, val block: String) : ASTNode

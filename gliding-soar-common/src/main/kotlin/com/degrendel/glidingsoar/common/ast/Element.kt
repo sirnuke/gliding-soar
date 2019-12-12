@@ -62,16 +62,3 @@ data class Interface(override val location: Location, override val identifier: R
   override val tangible = false
   override val constructable = false
 }
-
-/*
-data class Element(override val location: Location, val declaration: Declaration, val body: Body) : ASTNode
-{
-  override val children = ArrayList<ASTNode>()
-
-  init
-  {
-    children.add(declaration)
-    children.add(body)
-  }
-}
- */
