@@ -1,0 +1,31 @@
+/*
+ * Pure generic Soar templates
+ */
+
+binding(identifier) ::= "\<<identifier>>"
+
+/*
+ * Pure generic TCL templates
+ */
+
+procArguments(required, optional) ::= <<
+<required:{ identifier |<identifier.lowercase>}; separator=" "><\\>
+<if(required&&optional)> <endif><\\>
+<optional:{ identifier |{ <identifier.lowercase> ""}; separator=" ">
+>>
+
+
+proc(name, args, body, public) ::= <<
+<if(public)><export(name)><endif>
+proc <name> { <args> } {
+    <body>
+}
+>>
+
+namespace(name, block) ::= <<
+namespace eval <name> {
+    <block>
+}
+>>
+
+export(name) ::= "namespace export <name>"

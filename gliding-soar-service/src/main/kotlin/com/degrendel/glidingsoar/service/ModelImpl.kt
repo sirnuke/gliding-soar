@@ -16,7 +16,7 @@ class ModelImpl(private val arguments: Array<String>?) : Model
 
   private val root = RootNamespace()
   private val elements = mutableListOf<Element>()
-  private val template = STGroupFile(javaClass.getResource("/templates/template.stg"))
+  private val template = STGroupFile(javaClass.getResource("/templates/bundle.stg"))
 
   override fun bundle(): String
   {
