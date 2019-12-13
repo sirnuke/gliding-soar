@@ -54,7 +54,7 @@ createAttrFromRequiredSingleParameter(param) ::= <<
 
 createAttrFromOptionalSingleParameter(param, var) ::= <<
 <if(param.optional&&!param.multiple)><\\>
-<if_({$<var> ne ""}, {dict lappend <var> <param.identifier.value> <toSafeVar(param.identifier.value)>})><\\>
+<if_({<toSafeVar(param.identifier.value)> ne ""}, {dict lappend <var> <param.identifier.value> <toSafeVar(param.identifier.value)>})><\\>
 <endif>
 >>
 

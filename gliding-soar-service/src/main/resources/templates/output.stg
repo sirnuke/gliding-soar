@@ -35,9 +35,9 @@ iConstructorBody(body, type) ::= <<
 
 <checkIModification("$destination_", "$attribute", type)>
 
-<createAttrsOfAllParameters("attr", body.allParameters)>
+<createAttrsOfAllParameters("attrs", body.allParameters)>
 
-return <ngsCreateTypedObject("$destination_", "$attribute", type, "$binding_", "$attrs")>
+return <ngsCreateTypedObject("$destination_", "$attribute", type, "$binding", "$attrs")>
 >>
 
 iConstructorTypes(params) ::= <<
@@ -67,9 +67,9 @@ oConstructorBody(body, type) ::= <<
 
 <checkOModification("$destination_", "$attribute", type)>
 
-<createAttrsOfAllParameters("attr", body.allParameters)>
+<createAttrsOfAllParameters("attrs", body.allParameters)>
 
-return <ngsCreateTypedObjectByOperator("$state_", "$destination_", "$attribute", type, "$binding_", "$attrs", ngsAddToSet(), "$add_prefs")>
+return <ngsCreateTypedObjectByOperator("$state_", "$destination_", "$attribute", type, "$binding", "$attrs", ngsAddToSet(), "$add_prefs")>
 >>
 
 oConstructorTypes(params) ::= <<
