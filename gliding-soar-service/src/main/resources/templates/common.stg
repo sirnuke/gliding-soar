@@ -1,19 +1,89 @@
 /*
+ * Generic AST->Text templates
+ */
+
+requiredParametersAsArguments(params) ::= <<
+<params:{p|<if(!p.optional)><\\>
+<p.identifier.lowercase> <\\>
+<endif><\\>
+}>
+>>
+
+optionalParametersAsArguments(params) ::= <<
+<params:{p|<if(p.optional)><\\>
+{ <p.identifier.lowercase> "" \} <\\>
+<endif><\\>
+}>
+>>
+
+checkRhsElaboration() ::= "::glide::check-rhs elaboration"
+checkRhsProposal()    ::= "::glide::check-rhs proposal"
+
+checkTypes(list) ::= "::glide::check-types { <list>}"
+
+parameterToTypeCheck(param) ::= "<typeCheck({${<param.identifier.lowercase>\}}, param.type.value)>"
+
+typeCheck(val, type) ::= "<val> <type> "
+
+claimBinding(val, type) ::= "::glide::claim-binding <val> <type>"
+
+checkIModification(destination, attribute, type) ::= "::glide::check-i-modification <destination> <attribute> <type>"
+checkOModification(destination, attribute, type) ::= "::glide::check-o-modification <destination> <attribute> <type>"
+
+getOutputBinding() ::= "[::glide::output-binding]"
+getStateBinding() ::= "[::glide::state-binding]"
+
+setDefaultValue(varName, defaultValue) ::= <<
+<ifElse({$<varName> eq ""},
+{set <varName>_ <defaultValue>},
+{set <varName>_ $<varName>}
+)>
+>>
+
+createAttrsOfAllParameters(var, params) ::= <<
+set <var> [dict create <params:createAttrFromRequiredSingleParameter(); separator=" ">]
+<params:createAttrFromOptionalSingleParameter(var)><\\>
+<params:createAttrFromMultipleParameter(var); separator="\n">
+>>
+
+createAttrFromRequiredSingleParameter(param) ::= <<
+<if(!param.optional&&!param.multiple)><\\>
+<param.identifier.value> <toSafeVar(param.identifier.value)><\\>
+<endif>
+>>
+
+createAttrFromOptionalSingleParameter(param, var) ::= <<
+<if(param.optional&&!param.multiple)><\\>
+<if_({$<var> ne ""}, {dict lappend <var> <param.identifier.value> <toSafeVar(param.identifier.value)>})><\\>
+<endif>
+>>
+
+createAttrFromMultipleParameter(param, var) ::= <<
+<if(param.multiple)><\\>
+foreach val <toSafeVar(param.identifier.value)> {
+    dict lappend <var> <param.identifier.value> $val
+}
+<endif>
+>>
+
+/*
  * Pure generic Soar templates
  */
 
 binding(identifier) ::= "\<<identifier>>"
 
 /*
- * Pure generic TCL templates
+ * NGS Wrappers
  */
 
-procArguments(required, optional) ::= <<
-<required:{ identifier |<identifier.lowercase>}; separator=" "><\\>
-<if(required&&optional)> <endif><\\>
-<optional:{ identifier |{ <identifier.lowercase> ""}; separator=" ">
->>
+ngsCreateAttribute(binding, attribute, val) ::= "[ngs-create-attribute <binding> <attribute> <val>]"
+ngsCreateTypedObject(destination, attribute, type, binding, attrs) ::= "[ngs-create-typed-object <destination> <attribute> <type> <binding> <attrs>]"
+ngsCreateTypedObjectByOperator(state, destination, attribute, type, binding, attrs, action, prefs) ::= "[ngs-create-typed-object-by-operator <state> <destination> <attribute> <type> <binding> <attrs> <action> <prefs>]"
+ngsAddToSet() ::= "$::NGS_ADD_TO_SET"
 
+/*
+ * Pure generic TCL templates
+ */
 
 proc(name, args, body, public) ::= <<
 <if(public)><export(name)><endif>
@@ -28,4 +98,20 @@ namespace eval <name> {
 }
 >>
 
+if_(condition, block) ::= <<
+if { <condition> } {
+    <block>
+}
+>>
+
+ifElse(condition, trueBlock, falseBlock) ::= <<
+if { <condition> } {
+    <trueBlock>
+} else {
+    <falseBlock>
+}
+>>
+
 export(name) ::= "namespace export <name>"
+
+toSafeVar(name) ::= "${<name>}"

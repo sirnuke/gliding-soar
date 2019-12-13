@@ -1,0 +1,81 @@
+import "common.stg"
+
+output(element) ::= <<
+<namespace(element.identifier.value, body(element))>
+>>
+
+body(element) ::= <<
+<constructors(element)>
+
+# TODO: Others functions?
+>>
+
+constructors(element) ::= <<
+<proc(name="create", args=iConstructorArguments(element.body.allParameters, element.identifier.lowercase), body=iConstructorBody(element.body, element.identifier.value), public=true)>
+
+<proc(name="create-by-operator", args=oConstructorArguments(element.body.AllParameters, element.identifier.lowercase), body=oConstructorBody(element.body, element.identifier.value), public=true)>
+>>
+
+iConstructorArguments(params, name) ::= <<
+<requiredParametersAsArguments(params)><\\>
+<optionalParametersAsArguments(params)><\\>
+{ destination "" } <\\>
+{ attribute "<name>" } <\\>
+{ binding "\<<name>\>" }
+>>
+
+iConstructorBody(body, type) ::= <<
+<checkRhsElaboration()>
+<checkTypes(iConstructorTypes(body.allParameters))>
+<claimBinding("$binding", type)>
+
+<setDefaultValue("destination", getOutputBinding())>
+
+<checkIModification("$destination_", "$attribute", type)>
+
+<createAttrsOfAllParameters("attr", body.allParameters)>
+
+return <ngsCreateTypedObject("$destination_", "$attribute", type, "$binding_", "$attrs")>
+>>
+
+iConstructorTypes(params) ::= <<
+<params:parameterToTypeCheck()><\\>
+<typeCheck("$destination", "String")><\\>
+<typeCheck("$attribute", "String")><\\>
+<typeCheck("$binding", "Binding")>
+>>
+
+oConstructorArguments(params, name) ::= <<
+<requiredParametersAsArguments(params)><\\>
+<optionalParametersAsArguments(params)><\\>
+{ destination "" } <\\>
+{ attribute "<name>" } <\\>
+{ binding "\<<name>\>" } <\\>
+{ state "" } <\\>
+{ add_prefs "=" }
+>>
+
+oConstructorBody(body, type) ::= <<
+<checkRhsProposal()>
+<checkTypes(oConstructorTypes(body.allParameters))>
+<claimBinding("$binding", type)>
+
+<setDefaultValue("state", getStateBinding())>
+<setDefaultValue("destination", getOutputBinding())>
+
+<checkOModification("$destination_", "$attribute", type)>
+
+<createAttrsOfAllParameters("attr", body.allParameters)>
+
+return <ngsCreateTypedObjectByOperator("$state_", "$destination_", "$attribute", type, "$binding_", "$attrs", ngsAddToSet(), "$add_prefs")>
+>>
+
+oConstructorTypes(params) ::= <<
+<params:parameterToTypeCheck()><\\>
+<typeCheck("$destination", "String")><\\>
+<typeCheck("$attribute", "String")><\\>
+<typeCheck("$binding", "Binding")><\\>
+<typeCheck("$state", "Binding?")><\\>
+<typeCheck("$add_prefs", "Preferences")>
+>>
+

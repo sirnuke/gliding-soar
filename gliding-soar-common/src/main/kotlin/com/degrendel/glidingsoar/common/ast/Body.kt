@@ -4,8 +4,7 @@ data class Body(override val location: Location, val parameters: List<Parameter>
 {
   override val children = ArrayList<ASTNode>()
 
-  val requiredParameters = mutableListOf<Parameter>()
-  val optionalParameters = mutableListOf<Parameter>()
+  val allParameters = mutableListOf<Parameter>()
 
   init
   {
@@ -13,12 +12,7 @@ data class Body(override val location: Location, val parameters: List<Parameter>
     children.addAll(members)
     children.addAll(matches)
 
-    parameters.forEach {
-      if (it.optional)
-        optionalParameters.add(it)
-      else
-        requiredParameters.add(it)
-    }
+    allParameters.addAll(parameters)
   }
 }
 

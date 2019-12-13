@@ -2,9 +2,8 @@ namespace eval Response {
 
     namespace export create
     proc create { service-id server-id channel-id message { cooldown "" } { destination "" } { attribute "response" } { binding "<response>" }} {
-        ::glide::check-rhs
-        ::glide::check-elaboration
-        ::glide::check-string ${service-id}
+        ::glide::check-rhs elaboration
+        ::glide::check-types { string ${service-id} }
         # ...
 
         set binding_ [::glide::claim-binding $binding Response]
@@ -35,11 +34,8 @@ namespace eval Response {
 
     namespace export create-by-operator
     proc create-by-operator { service-id server-id channel-id message { cooldown "" } { destination "" } { attribute "response" } { binding "<response>" } { state "" } { add_prefs "=" } } {
-        ::glide::check-rhs
-        ::glide::check-proposal
-        ::glide::check-string ${service-id}
-        # ...
-        ::glide::check-prefs $add_prefs
+        ::glide::check-rhs proposal
+        ::glide::check-types { string ${service-id} preferences $add_prefs }
 
         set binding_ [::glide::claim-binding $binding Response]
         if { $state eq "" } {

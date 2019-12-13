@@ -2,10 +2,13 @@ package com.degrendel.glidingsoar.service
 
 import com.degrendel.glidingsoar.common.*
 import com.degrendel.glidingsoar.common.ast.*
+import org.stringtemplate.v4.AttributeRenderer
 import org.stringtemplate.v4.STGroupFile
 import java.io.File
 import java.net.URI
 import java.time.Instant
+import java.util.*
+import kotlin.collections.ArrayList
 
 class ModelImpl(private val arguments: Array<String>?) : Model
 {
@@ -17,6 +20,31 @@ class ModelImpl(private val arguments: Array<String>?) : Model
   private val root = RootNamespace()
   private val elements = mutableListOf<Element>()
   private val template = STGroupFile(javaClass.getResource("/templates/bundle.stg"))
+
+  private object ElementRenderer : AttributeRenderer
+  {
+    private val outputTemplate = STGroupFile(javaClass.getResource("/templates/output.stg"))
+    private val output = outputTemplate.getInstanceOf("output")
+
+    override fun toString(obj: Any, formatString: String?, locale: Locale?): String
+    {
+      val renderer = when (obj)
+      {
+        is Output -> output
+        is Input -> TODO("Inputs aren't implemented!")
+        is Object -> TODO("Objects aren't implemented!")
+        is Interface -> return ""
+        else -> throw IllegalArgumentException("ElementRenderer received unexpected object of type ${obj::class.java}: $obj")
+      }
+      renderer.add("element", obj)
+      return renderer.render()
+    }
+  }
+
+  init
+  {
+    template.registerRenderer(Element::class.java, ElementRenderer)
+  }
 
   override fun bundle(): String
   {
