@@ -60,9 +60,7 @@ createAttrFromOptionalSingleParameter(param, var) ::= <<
 
 createAttrFromMultipleParameter(param, var) ::= <<
 <if(param.multiple)><\\>
-foreach val <toSafeVar(param.identifier.value)> {
-    dict lappend <var> <param.identifier.value> $val
-}
+<foreach("val", param.identifier.value, {dict lappend <var> <param.identifier.value> $val})>
 <endif>
 >>
 
@@ -111,6 +109,12 @@ if { <condition> } {
     <trueBlock>
 } else {
     <falseBlock>
+}
+>>
+
+foreach(source, var, block) ::= <<
+foreach <source> <toSafeVar(var)> {
+    <block>
 }
 >>
 
