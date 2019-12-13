@@ -76,6 +76,8 @@ binding(identifier) ::= "\<<identifier>>"
  * NGS Wrappers
  */
 
+// TODO: This assumes that we'll never want NGS to create any defaults for us (probably safe?)
+ngsDeclareType(type) ::= "::NGS_DeclareType <type> {}"
 ngsCreateAttribute(binding, attribute, val) ::= "[ngs-create-attribute <binding> <attribute> <val>]"
 ngsCreateTypedObject(destination, attribute, type, binding, attrs) ::= "[ngs-create-typed-object <destination> <attribute> <type> <binding> <attrs>]"
 ngsCreateTypedObjectByOperator(state, destination, attribute, type, binding, attrs, action, prefs) ::= "[ngs-create-typed-object-by-operator <state> <destination> <attribute> <type> <binding> <attrs> <action> <prefs>]"

@@ -5,9 +5,11 @@ output(element) ::= <<
 >>
 
 body(element) ::= <<
+<ngsDeclareType(element.identifier.value)>
+
 <constructors(element)>
 
-# TODO: Others functions?
+# TODO: Other functions?
 >>
 
 constructors(element) ::= <<
