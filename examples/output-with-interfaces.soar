@@ -1,0 +1,18 @@
+# <glide>
+# interface ServiceLocation {
+#   param service-id: String
+# }
+#
+# interface ServerLocation: ServiceLocation {
+#   param server-id: String
+# }
+#
+# interface ChannelLocation: ServerLocation {
+#   param channel-id: String
+# }
+#
+# output Response: ChannelLocation {
+#   param message: String
+#   param cooldown: Int?
+# }
+# </glide>
