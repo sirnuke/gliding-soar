@@ -64,6 +64,8 @@ createAttrFromMultipleParameter(param, var) ::= <<
 <endif>
 >>
 
+getScopeVariable() ::= "SCOPE"
+
 /*
  * Pure generic Soar templates
  */
