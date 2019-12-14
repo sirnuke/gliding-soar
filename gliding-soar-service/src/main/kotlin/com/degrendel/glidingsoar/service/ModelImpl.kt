@@ -25,13 +25,15 @@ class ModelImpl(private val arguments: Array<String>?) : Model
   {
     private val outputTemplate = STGroupFile(javaClass.getResource("/templates/output.stg"))
     private val output = outputTemplate.getInstanceOf("output")
+    private val inputTemplate = STGroupFile(javaClass.getResource("/templates/input.stg"))
+    private val input = inputTemplate.getInstanceOf("input")
 
     override fun toString(obj: Any, formatString: String?, locale: Locale?): String
     {
       val renderer = when (obj)
       {
         is Output -> output
-        is Input -> TODO("Inputs aren't implemented!")
+        is Input -> input
         is Object -> TODO("Objects aren't implemented!")
         is Interface -> return ""
         else -> throw IllegalArgumentException("ElementRenderer received unexpected object of type ${obj::class.java}: $obj")
