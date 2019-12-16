@@ -14,7 +14,7 @@ body : OPEN_CURLY bodyElement* CLOSE_CURLY;
 
 bodyElement : member | match;
 
-member : (I_SUPPORT | O_SUPPORT )? PARAMETER? TAG? IDENTIFIER COLON resolvedIdentifier MULTIPLE? OPTIONAL?;
+member : (I_SUPPORT | O_SUPPORT )? (PARAMETER CONST? OPTIONAL?)? TAG? IDENTIFIER COLON resolvedIdentifier MULTIPLE?;
 
 match : (SUBST|PROC) IDENTIFIER arguments? EQUALS RAW_TCL;
 
@@ -40,6 +40,7 @@ TAG : 'tag';
 PROC : 'proc';
 SUBST : 'subst';
 
+CONST    : '!';
 OPTIONAL : '?';
 MULTIPLE : '+';
 
