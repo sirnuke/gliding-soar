@@ -12,11 +12,9 @@ extends_ : COLON resolvedIdentifier (COMMA resolvedIdentifier)*;
 
 body : OPEN_CURLY bodyElement* CLOSE_CURLY;
 
-bodyElement : parameter | member | match;
+bodyElement : member | match;
 
-parameter : PARAMETER IDENTIFIER COLON IDENTIFIER MULTIPLE? OPTIONAL?;
-
-member : (I_SUPPORT | O_SUPPORT) TAG? IDENTIFIER COLON IDENTIFIER MULTIPLE?;
+member : (I_SUPPORT | O_SUPPORT )? PARAMETER? TAG? IDENTIFIER COLON resolvedIdentifier MULTIPLE? OPTIONAL?;
 
 match : (SUBST|PROC) IDENTIFIER arguments? EQUALS RAW_TCL;
 
