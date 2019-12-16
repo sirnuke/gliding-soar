@@ -59,19 +59,20 @@ class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
     {
       val identifier = visitResolvedIdentifier(ctx.resolvedIdentifier())
       val extends = if (ctx.extends_() == null)
-        ArrayList<ResolvedIdentifier>()
+        ArrayList()
       else
-        ctx.extends_().resolvedIdentifier().map { visitResolvedIdentifier(it)}
-      val body = visitBody(ctx.body())
-      val location = symbolToLocation(ctx.start)
-      return when
+        ctx.extends_().resolvedIdentifier().map { visitResolvedIdentifier(it) }
+      val members = ctx.body().bodyElement().filter { it.member() != null }.map { visitMember(it.member()) }
+      val matches = ctx.body().bodyElement().filter { it.match() != null }.map { visitMatch(it.match()) }
+      val type = when
       {
-        ctx.type().INPUT() != null -> Input(location, identifier, extends, body)
-        ctx.type().INTERFACE() != null -> Interface(location, identifier, extends, body)
-        ctx.type().OUTPUT() != null -> Output(location, identifier, extends, body)
-        ctx.type().OBJECT() != null -> Object(location, identifier, extends, body)
+        ctx.type().INPUT() != null -> Element.ElementType.INPUT
+        ctx.type().INTERFACE() != null -> Element.ElementType.INTERFACE
+        ctx.type().OUTPUT() != null -> Element.ElementType.OUTPUT
+        ctx.type().OBJECT() != null -> Element.ElementType.OBJECT
         else -> throw IllegalStateException("Found element $ctx with unknown/unhandled type")
       }
+      return Element(symbolToLocation(ctx.start), type, identifier, extends, members, matches)
     }
 
     override fun visitResolvedIdentifier(ctx: GlidingSoarParser.ResolvedIdentifierContext): ResolvedIdentifier
@@ -80,37 +81,24 @@ class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
       return ResolvedIdentifier(symbolToLocation(ctx.start), namespace, ctx.IDENTIFIER().last().text)
     }
 
-    override fun visitBody(ctx: GlidingSoarParser.BodyContext): Body
-    {
-      val parameters = ctx.bodyElement().filter { it.parameter() != null }.map { visitParameter(it.parameter()) }
-      val members = ctx.bodyElement().filter { it.member() != null }.map { visitMember(it.member()) }
-      val matches = ctx.bodyElement().filter { it.match() != null }.map { visitMatch(it.match()) }
-      return Body(symbolToLocation(ctx.OPEN_CURLY().symbol), parameters, members, matches)
-    }
-
-    override fun visitParameter(ctx: GlidingSoarParser.ParameterContext): Parameter
-    {
-      val identifier = convertIdentifier(ctx.IDENTIFIER(0))
-      val type = convertIdentifier(ctx.IDENTIFIER(1))
-      val multiple = ctx.MULTIPLE() != null
-      val optional = ctx.OPTIONAL() != null
-      return Parameter(symbolToLocation(ctx.start), identifier, type, multiple, optional)
-    }
-
     override fun visitMember(ctx: GlidingSoarParser.MemberContext): Member
     {
-      val identifier = convertIdentifier(ctx.IDENTIFIER(0))
-      val type = convertIdentifier(ctx.IDENTIFIER(1))
+      val identifier = convertIdentifier(ctx.IDENTIFIER())
+      val param = ctx.PARAMETER() != null
+      val const = ctx.CONST() != null
+      val optional = ctx.OPTIONAL() != null
+      val type = visitResolvedIdentifier(ctx.resolvedIdentifier())
       val tag = ctx.TAG() != null
       val multiple = ctx.MULTIPLE() != null
       if (ctx.I_SUPPORT() != null && ctx.O_SUPPORT() != null)
         throw IllegalStateException("Found member that is both o support and i support!: $ctx")
-      return when
+      val supportType = when
       {
-        ctx.I_SUPPORT() != null -> IMember(symbolToLocation(ctx.start), tag, identifier, type, multiple)
-        ctx.O_SUPPORT() != null -> OMember(symbolToLocation(ctx.start), tag, identifier, type, multiple)
-        else -> throw IllegalStateException("Found member that is neither i support nor o support!: $ctx")
+        ctx.I_SUPPORT() != null -> Member.SupportType.ISUPPORT
+        ctx.O_SUPPORT() != null -> Member.SupportType.OSUPPORT
+        else -> Member.SupportType.UNRESTRICTED
       }
+      return Member(symbolToLocation(ctx.start), supportType, param, optional, const, tag, identifier, type, multiple)
     }
 
     override fun visitMatch(ctx: GlidingSoarParser.MatchContext): Match

@@ -19,10 +19,10 @@ class BlockParserTests
     fun simpleObjects(): Stream<Arguments>
     {
       return Stream.of(
-          Arguments.of("input Simple {}", Input::class),
-          Arguments.of("output Simple {}", Output::class),
-          Arguments.of("object Simple {}", Object::class),
-          Arguments.of("interface Simple {}", Interface::class)
+          Arguments.of("input Simple {}", Element.ElementType.INPUT),
+          Arguments.of("output Simple {}", Element.ElementType.OUTPUT),
+          Arguments.of("object Simple {}", Element.ElementType.OBJECT),
+          Arguments.of("interface Simple {}", Element.ElementType.INTERFACE)
       )
     }
   }
@@ -48,22 +48,16 @@ class BlockParserTests
     }
   }
 
-  private fun assertParameter(param: Parameter, name: String, type: String, optional: Boolean = false, multiple: Boolean = false)
-  {
-    assertEquals(name, param.identifier.value)
-    assertEquals(type, param.type.value)
-    assertEquals(optional, param.optional)
-    assertEquals(multiple, param.multiple)
-  }
-
-  private fun assertMember(member: Member, name: String, type: String, i_support: Boolean = true, tag: Boolean = false, multiple: Boolean = false)
+  private fun assertMember(member: Member, name: String, type: String, support: Member.SupportType = Member.SupportType.UNRESTRICTED, param: Boolean = false, const: Boolean = false, optional: Boolean = false, tag: Boolean = false, multiple: Boolean = false)
   {
     assertEquals(name, member.identifier.value)
     assertEquals(type, member.type.value)
-    val klass = if (i_support) IMember::class else OMember::class
-    assertEquals(klass, member::class)
+    assertEquals(support, member.support)
     assertEquals(tag, member.tag)
     assertEquals(multiple, member.multiple)
+    assertEquals(param, member.param)
+    assertEquals(const, member.const)
+    assertEquals(optional, member.optional)
   }
 
   @ParameterizedTest
@@ -76,12 +70,12 @@ class BlockParserTests
 
   @ParameterizedTest
   @MethodSource("simpleObjects")
-  fun `Parses a simple elements`(block: String, type: KClass<Any>)
+  fun `Parses a simple elements`(block: String, type: Element.ElementType)
   {
     val elements = assertSuccess(block).elements
     assertEquals(1, elements.size)
     val element = elements.first()
-    assertEquals(type, element::class)
+    assertEquals(type, element.type)
     assertTrue(element.extends.isEmpty())
     assertEquals("Simple", element.identifier.value)
   }
@@ -106,18 +100,22 @@ class BlockParserTests
       object FooBar {
         param foo: Boolean
         param bar: FooBar
-        param hello: Int?
+        param? hello: Int
         param world: Thing+
-        param what: String+?
+        param? what: String+
+        param!? hmm: Nope
+        param! asdf: ASDF+
       }
     """.trimIndent()
-    val body = assertSuccess(block).elements.first().body
-    assertEquals(5, body.parameters.size)
-    assertParameter(body.parameters[0], "foo", "Boolean")
-    assertParameter(body.parameters[1], "bar", "FooBar")
-    assertParameter(body.parameters[2], "hello", "Int", optional = true)
-    assertParameter(body.parameters[3], "world", "Thing", multiple = true)
-    assertParameter(body.parameters[4], "what", "String", optional = true, multiple = true)
+    val element = assertSuccess(block).elements.first()
+    assertEquals(7, element.members.size)
+    assertMember(element.members[0], "foo", "Boolean", param = true)
+    assertMember(element.members[1], "bar", "FooBar", param = true)
+    assertMember(element.members[2], "hello", "Int", param = true, optional = true)
+    assertMember(element.members[3], "world", "Thing", param = true, multiple = true)
+    assertMember(element.members[4], "what", "String", param = true, optional = true, multiple = true)
+    assertMember(element.members[5], "hmm", "Nope", param = true, optional = true, const = true)
+    assertMember(element.members[6], "asdf", "ASDF", param = true, const = true, multiple = true)
   }
 
   @Test
@@ -131,11 +129,11 @@ class BlockParserTests
         o tag world: Tag
       }
     """.trimIndent()
-    val body = assertSuccess(block).elements.first().body
-    assertEquals(4, body.members.size)
-    assertMember(body.members[0], "foo", "String")
-    assertMember(body.members[1], "bar", "Thing", i_support = false)
-    assertMember(body.members[2], "hello", "Int", multiple = true)
-    assertMember(body.members[3], "world", "Tag", i_support = false, tag = true)
+    val element = assertSuccess(block).elements.first()
+    assertEquals(4, element.members.size)
+    assertMember(element.members[0], "foo", "String", support = Member.SupportType.ISUPPORT)
+    assertMember(element.members[1], "bar", "Thing", support = Member.SupportType.OSUPPORT)
+    assertMember(element.members[2], "hello", "Int", multiple = true, support = Member.SupportType.ISUPPORT)
+    assertMember(element.members[3], "world", "Tag", tag = true, support = Member.SupportType.OSUPPORT)
   }
 }

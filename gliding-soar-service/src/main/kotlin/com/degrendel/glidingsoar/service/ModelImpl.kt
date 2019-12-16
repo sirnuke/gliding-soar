@@ -30,13 +30,15 @@ class ModelImpl(private val arguments: Array<String>?) : Model
 
     override fun toString(obj: Any, formatString: String?, locale: Locale?): String
     {
-      val renderer = when (obj)
+      if (obj !is Element)
+        throw IllegalArgumentException("ElementRenderer recieved unexpected non-Element ${obj::class.java}: $obj")
+      L.info("Converting element {} of type {} to a string", obj, obj.type)
+      val renderer = when (obj.type)
       {
-        is Output -> output
-        is Input -> input
-        is Object -> TODO("Objects aren't implemented!")
-        is Interface -> return ""
-        else -> throw IllegalArgumentException("ElementRenderer received unexpected object of type ${obj::class.java}: $obj")
+        Element.ElementType.OUTPUT -> output
+        Element.ElementType.INPUT -> input
+        Element.ElementType.OBJECT -> TODO("Objects aren't implemented!")
+        Element.ElementType.INTERFACE -> return ""
       }
       renderer.add("element", obj)
       return renderer.render()
@@ -51,8 +53,8 @@ class ModelImpl(private val arguments: Array<String>?) : Model
   override fun bundle(): String
   {
     L.info("Generating bundle")
-    root.validate()
     val bundle = template.getInstanceOf("bundle")
+    elements.filterNot { it.resolved }.forEach { it.resolve(root, listOf()) }
     bundle.add("model", this)
     bundle.add("version", Version.VERSION)
     bundle.add("when", Instant.now())

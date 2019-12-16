@@ -3,6 +3,7 @@ package com.degrendel.glidingsoar.common
 import com.degrendel.glidingsoar.common.ast.ASTNode
 import com.degrendel.glidingsoar.common.ast.Element
 import com.degrendel.glidingsoar.common.ast.Identifier
+import com.degrendel.glidingsoar.common.ast.ResolvedIdentifier
 
 sealed class Symbol
 {
@@ -21,22 +22,18 @@ data class ElementSymbol(val element: Element) : Symbol()
   override val firstReference = element
 }
 
-sealed class Namespace
+sealed class Namespace()
 {
+  internal abstract val root: RootNamespace
   abstract val name: String
   abstract val fullyQualified: String
 
-  private val _symbols = mutableMapOf<String, Symbol>()
-  val symbols: Map<String, Symbol>
-    get() = _symbols
-
+  private val symbols = mutableMapOf<String, Symbol>()
   private val _children = mutableListOf<ChildNamespace>()
-  val children: List<ChildNamespace>
-    get() = _children
-
   private val _elements = mutableListOf<Element>()
-  val elements: List<Element>
-    get() = _elements
+  val children: List<ChildNamespace> get() = _children
+  val elements: List<Element> get() = _elements
+
 
   private fun addNamespaceSymbol(namespace: ChildNamespace, reference: ASTNode): NamespaceSymbol
   {
@@ -58,7 +55,7 @@ sealed class Namespace
   {
     if (!path.hasNext())
     {
-      val existing = _symbols[element.identifier.value]
+      val existing = symbols[element.identifier.value]
       if (existing != null)
       {
         val message = when (existing)
@@ -73,7 +70,7 @@ sealed class Namespace
     else
     {
       val child = path.next()
-      val symbol = _symbols[child.value]
+      val symbol = symbols[child.value]
       val childNamespace = if (symbol != null)
       {
         when (symbol)
@@ -83,26 +80,43 @@ sealed class Namespace
         }
       }
       else
-        addNamespaceSymbol(ChildNamespace(this, child.value), element).namespace
+        addNamespaceSymbol(ChildNamespace(root, this, child.value), element).namespace
       childNamespace.addElement(path, element)
     }
   }
 
   private fun addSymbol(symbol: Symbol)
   {
-    if (symbol.name in _symbols)
-      throw IllegalStateException("Attempting to add new symbol ${symbol.name} ($symbol), conflicts with existing symbol ${_symbols[symbol.name]}")
-    _symbols[name] = symbol
+    if (symbol.name in symbols)
+      throw IllegalStateException("Attempting to add new symbol ${symbol.name} ($symbol), conflicts with existing symbol ${symbols[symbol.name]}")
+    symbols[name] = symbol
   }
 
-  internal fun validate(root: RootNamespace)
+  protected fun recurseNamespace(reference: ASTNode, namespace: List<Identifier>): Namespace
   {
-    elements.forEach {
-      if (it.extends.isNotEmpty())
-        TODO("Inheritance/interfaces are not yet implemented")
+    return if (namespace.isEmpty())
+      this
+    else
+    {
+      (symbols[namespace.first().value] as? NamespaceSymbol)?.namespace?.recurseNamespace(reference, namespace.drop(1))
+          ?: throw UnknownNamespaceException("Namespace not found!", namespace.first().value, reference)
     }
-    // TODO: Confirm not invalid members (i.e. elaboratables or matches on output)
-    children.forEach { it.validate(root) }
+  }
+
+  fun resolveElement(reference: ASTNode, symbol: ResolvedIdentifier): Element
+  {
+    return if (symbol.namespace.isEmpty())
+      getElement(reference, symbol)
+    else
+      resolveNamespace(reference, symbol).getElement(reference, symbol)
+  }
+
+  fun resolveNamespace(reference: ASTNode, symbol: ResolvedIdentifier): Namespace = root.recurseNamespace(reference, symbol.namespace)
+
+  private fun getElement(reference: ASTNode, symbol: ResolvedIdentifier): Element
+  {
+    return (symbols[symbol.value] as? ElementSymbol)?.element
+        ?: throw UnknownSymbolException("Symbol not found!", symbol.toString(), reference)
   }
 }
 
@@ -113,6 +127,7 @@ class RootNamespace : Namespace()
     val L by logger()
   }
 
+  override val root = this
   override val name = ""
   override val fullyQualified = ""
 
@@ -120,15 +135,9 @@ class RootNamespace : Namespace()
   {
     elements.forEach { addElement(it.identifier.namespace.iterator(), it) }
   }
-
-  fun validate()
-  {
-    L.info("Validating namespace symbols")
-    validate(this)
-  }
 }
 
-data class ChildNamespace(val parent: Namespace, override val name: String) : Namespace()
+data class ChildNamespace(override val root: RootNamespace, val parent: Namespace, override val name: String) : Namespace()
 {
   override val fullyQualified: String = if (parent is RootNamespace)
     name
