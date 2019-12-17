@@ -24,7 +24,7 @@ topProcs() ::= <<
 # Generates a checked elaboration rule
 #
 # Enforces that the RHS does not propose an operator.  Prepends the production
-# name with $SCOPE, if set, plus elaborate.
+# name with the scope variable, if set, plus elaborate.
 #
 # name          The production name
 # docstring?    Production's docstring, optional
@@ -38,7 +38,7 @@ topProcs() ::= <<
 # Generates a checked proposal rule
 #
 # Enforces that the RHS proposes an operator, but otherwise does not modify
-# working memory.  Prepends the production name with $SCOPE, if set, plus
+# working memory.  Prepends the production name with the scope variable, if set, plus
 # propose.
 #
 # name          The production name
@@ -56,7 +56,7 @@ topProcs() ::= <<
 # Enforces that the RHS neither proposes an operator, nor directly modify
 # working memory.  Allows RHS functions, since they typically do not modify
 # the agent, though that cannot be checked.  Prepends the production name
-# with $SCOPE, if set, plus monitor.
+# with the scope variable, if set, plus monitor.
 #
 # name          The production name
 # docstring?    Production's docstring, optional
@@ -70,7 +70,7 @@ topProcs() ::= <<
 # Creates an unchecked production
 #
 # Enforces typing, but otherwise does not enforce any rules.  Go hog wild.
-# Prepends the production name with $SCOPE, if set, but no other keywords.
+# Prepends the production name with scope variable, if set, but no other keywords.
 #
 # name          The production name
 # docstring?    Production's docstring, optional
@@ -81,6 +81,9 @@ topProcs() ::= <<
 # TODO: Stub!<\\>
 })>
 
+>>
+
+glideProcs() ::= <<
 # Sets the local SCOPE variable
 #
 # All Glide productions, plus logging, between set-scope calls will be labeled
@@ -89,41 +92,80 @@ topProcs() ::= <<
 #
 # Yes, ideally this would be set automagically, but JTCL is awful and doesn't
 # support [info frame], so scripts can progmatically determine where they are.
-# Call your congress representative and complain.
+# Call your congressional representatives and complain.
 #
 #
-<proc(name="set-scope", args="keywords", public=false, body={<\\>
-variable <getScopeVariable()> [join $keywords *]<\\>
+<proc(name=funcSetScope(), args="keywords", public=true, body={<\\>
+variable <scopeVariable()> [join $keywords *]<\\>
 })>
 
->>
+<proc(name=funcCreate(), args="type destination attribute binding attrs", public=true, body={<\\>
+<checkRhsElaboration()>
+<checkTypes("$attrs")>
+<checkTypes(list([
+    list(["type", "$type", "Type"]),
+    list(["destination", "$destination", "Binding"]),
+    list(["attribute", "$attribute", "String"]),
+    list(["binding", "$binding", "Binding"])
+]))>
+<claimBinding("$binding", "$type")>
+<checkIModification("$destination", "$attribute", "$type")>
+# TODO: Convert attrs
+<return(ngsCreateTypedObject("$destination", "$attribute", "$type", "$binding", "$attrs"))><\\>
+})>
 
-glideProcs() ::= <<
-<proc(name="check-rhs", args="type", public=true, body={<\\>
+<proc(name=funcCreateByOperator(), args="type destination attribute binding state add_prefs attrs", public=true, body={<\\>
+<checkRhsProposal()>
+<checkTypes("$attrs")>
+<checkTypes(list([
+    list(["type", "$Type", "Type"]),
+    list(["destination", "$destination", "Binding"]),
+    list(["attribute", "$attribute", "Attribute"]),
+    list(["binding", "$binding", "Binding"]),
+    list(["state", "$state", "State"]),
+    list(["add_prefs", "$add_prefs", "Preferences"])
+]))>
+
+<claimBinding("$binding", "$type")>
+<checkOModification("$destination", "$attribute", "$type")>
+# TODO: Convert attrs
+<return(ngsCreateTypedObjectByOperator("$state", "$destination", "$attribute", "$type", "$binding", "$attrs", ngsAddToSet(), "$add_prefs"))><\\>
+})>
+
+<proc(name=funcCheckRhs(), args="type", public=true, body={<\\>
 # TODO: Stub!<\\>
 })>
 
-<proc(name="check-types", args="spec", public=true, body={<\\>
+<proc(name=funcCheckTypes(), args="spec", public=true, body={<\\>
 # TODO: Stub!<\\>
 })>
 
-<proc(name="claim-binding", args="binding type", public=true, body={<\\>
+<proc(name=funcClaimBinding(), args="binding type", public=true, body={<\\>
 # TODO: Stub!<\\>
 })>
 
-<proc(name="check-i-modification", args="binding attribute type", public=true, body={<\\>
+<proc(name=funcCheckIMod(), args="binding attribute type", public=true, body={<\\>
 # TODO: Stub!<\\>
 })>
 
-<proc(name="check-o-modification", args="binding attribute type", public=true, body={<\\>
+<proc(name=funcCheckOMod(), args="binding attribute type", public=true, body={<\\>
 # TODO: Stub!<\\>
 })>
 
-<proc(name="state-binding", args="", public=true, body={<\\>
+<proc(name=funcStateBinding(), args="", public=true, body={<\\>
 # TODO: Stub!
-return "\<s>"<\\>
+<return(binding("state"))><\\>
 })>
 
+<proc(name=funcInputBinding(), args="", public=true, body={<\\>
+# TODO: Stub!
+<return(binding("input-link"))><\\>
+})>
+
+<proc(name=funcOutputBinding(), args="", public=true, body={<\\>
+# TODO: Stub!
+<return(binding("output-link"))><\\>
+})>
 >>
 
 childNamespace(ns) ::= <<

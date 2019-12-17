@@ -2,36 +2,51 @@
  * Generic AST->Text templates
  */
 
-requiredParametersAsArguments(params) ::= <<
-<params:{p|<if(!p.optional)><\\>
-<p.identifier.lowercase> <\\>
+requiredParametersAsArguments(members) ::= <<
+<members:{m|<if(m.param&&!m.optional)><\\>
+<m.identifier.lowercase> <\\>
 <endif><\\>
 }>
 >>
 
-optionalParametersAsArguments(params) ::= <<
-<params:{p|<if(p.optional)><\\>
-{ <p.identifier.lowercase> "" \} <\\>
+optionalParametersAsArguments(members) ::= <<
+<members:{m|<if(m.param&&m.optional)><\\>
+<optionalArguments(m.identifier.lowercase)> <\\>
 <endif><\\>
 }>
 >>
 
-checkRhsElaboration() ::= "::glide::check-rhs elaboration"
-checkRhsProposal()    ::= "::glide::check-rhs proposal"
+funcSetScope() ::= "set-scope"
+funcCheckRhs() ::= "_check-rhs"
+funcCheckTypes() ::= "_check-types"
+funcClaimBinding() ::= "_claim-binding"
+funcOutputBinding() ::= "output-binding"
+funcInputBinding() ::= "input-binding"
+funcStateBinding() ::= "state-binding"
+funcGoalBinding() ::= "goal-binding"
+funcCheckIMod() ::= "_check-i-modification"
+funcCheckOMod() ::= "_check-o-modification"
+funcCreate() ::= "_create"
+funcCreateByOperator() ::= "_create_by_operator"
 
-checkTypes(list) ::= "::glide::check-types { <list>}"
+checkRhsElaboration() ::= "<funcCheckRhs()> elaboration"
+checkRhsProposal()    ::= "<funcCheckRhs()> proposal"
 
-parameterToTypeCheck(param) ::= "<typeCheck({${<param.identifier.lowercase>\}}, param.type.value)>"
+checkTypes(list) ::= <<
+<funcCheckTypes()> <list; separator=" ">
+>>
+claimBinding(val, type) ::= "<funcClaimBinding()> <val> <type>"
 
-typeCheck(val, type) ::= "<val> <type> "
+callCreate(type, destination, attribute, binding, attrs) ::= "[::glide::<funcCreate()> <type> <destination> <attribute> <binding> <attrs>]"
+callCreateByOperator(type, destination, attribute, binding, state, add_prefs, attrs) ::= "[::glide::<funcCreateByOperator()> <type> <destination> <attribute> <binding> <state> <add_prefs> <attrs>]"
 
-claimBinding(val, type) ::= "::glide::claim-binding <val> <type>"
+checkIModification(destination, attribute, type) ::= "<funcCheckIMod()> <destination> <attribute> <type>"
+checkOModification(destination, attribute, type) ::= "<funcCheckOMod()> <destination> <attribute> <type>"
 
-checkIModification(destination, attribute, type) ::= "::glide::check-i-modification <destination> <attribute> <type>"
-checkOModification(destination, attribute, type) ::= "::glide::check-o-modification <destination> <attribute> <type>"
-
-getOutputBinding() ::= "[::glide::output-binding]"
-getStateBinding() ::= "[::glide::state-binding]"
+inputBinding() ::= "[::glide::<funcInputBinding()>]"
+outputBinding() ::= "[::glide::<funcOutputBinding()>]"
+stateBinding() ::= "[::glide::<funcStateBinding()>]"
+goalBinding() ::= "[::glide::<funcGoalBinding()>]"
 
 setDefaultValue(varName, defaultValue) ::= <<
 <ifElse({$<varName> eq ""},
@@ -40,12 +55,17 @@ setDefaultValue(varName, defaultValue) ::= <<
 )>
 >>
 
-createAttrsOfAllParameters(var, params) ::= <<
-set <var> [dict create <params:createAttrFromRequiredSingleParameter(); separator=" ">]
-<params:createAttrFromOptionalSingleParameter(var)><\\>
-<params:createAttrFromMultipleParameter(var); separator="\n">
+createAttrsOfAllParameters(var, members) ::= <<
+<set(var, list({<members:createAttrFromMember(); separator=" ">}))>
 >>
 
+createAttrFromMember(member) ::= <<
+<if(member.param)><\\>
+[list <member.identifier.value> <toSafeVar(member.identifier.value)> <member.type.value>]<\\>
+<endif>
+>>
+
+/*
 createAttrFromRequiredSingleParameter(param) ::= <<
 <if(!param.optional&&!param.multiple)><\\>
 <param.identifier.value> <toSafeVar(param.identifier.value)><\\>
@@ -63,8 +83,9 @@ createAttrFromMultipleParameter(param, var) ::= <<
 <foreach("val", param.identifier.value, {dict lappend <var> <param.identifier.value> $val})>
 <endif>
 >>
+*/
 
-getScopeVariable() ::= "SCOPE"
+scopeVariable() ::= "::glide::_scope"
 
 /*
  * Pure generic Soar templates
@@ -82,6 +103,8 @@ ngsCreateAttribute(binding, attribute, val) ::= "[ngs-create-attribute <binding>
 ngsCreateTypedObject(destination, attribute, type, binding, attrs) ::= "[ngs-create-typed-object <destination> <attribute> <type> <binding> <attrs>]"
 ngsCreateTypedObjectByOperator(state, destination, attribute, type, binding, attrs, action, prefs) ::= "[ngs-create-typed-object-by-operator <state> <destination> <attribute> <type> <binding> <attrs> <action> <prefs>]"
 ngsAddToSet() ::= "$::NGS_ADD_TO_SET"
+
+ngsDefaultAddPrefs() ::= "="
 
 /*
  * Pure generic TCL templates
@@ -120,6 +143,18 @@ foreach <source> <toSafeVar(var)> {
 }
 >>
 
+optionalArguments(names) ::= <<
+<names:{n|{ <n> ""\}}; separator=" ">
+>>
+
 export(name) ::= "namespace export <name>"
 
 toSafeVar(name) ::= "${<name>}"
+
+return(statement) ::= "return <statement>"
+
+set(var, string) ::= "set <var> <string>"
+
+list(words) ::= <<
+[list <words; separator=" ">]
+>>

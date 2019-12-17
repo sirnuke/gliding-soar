@@ -13,71 +13,44 @@ body(element) ::= <<
 >>
 
 constructors(element) ::= <<
-<proc(name="create", args=iConstructorArguments(element.body.allParameters, element.identifier.lowercase), body=iConstructorBody(element.body, element.identifier.value), public=true)>
+<proc(name="create", args=iConstructorArguments(element.members), body=iConstructorBody(element), public=true)>
 
-<proc(name="create-by-operator", args=oConstructorArguments(element.body.AllParameters, element.identifier.lowercase), body=oConstructorBody(element.body, element.identifier.value), public=true)>
+<proc(name="create-by-operator", args=oConstructorArguments(element.members), body=oConstructorBody(element), public=true)>
 >>
 
-iConstructorArguments(params, name) ::= <<
-<requiredParametersAsArguments(params)><\\>
-<optionalParametersAsArguments(params)><\\>
-{ destination "" } <\\>
-{ attribute "<name>" } <\\>
-{ binding "\<<name>\>" }
+iConstructorArguments(members) ::= <<
+<requiredParametersAsArguments(members)><\\>
+<optionalParametersAsArguments(members)><\\>
+<optionalArguments(["destination", "attribute", "binding"])>
 >>
 
-iConstructorBody(body, type) ::= <<
-<checkRhsElaboration()>
-<checkTypes(iConstructorTypes(body.allParameters))>
-<claimBinding("$binding", type)>
+iConstructorBody(element) ::= <<
 
-<setDefaultValue("destination", getOutputBinding())>
+<setDefaultValue("destination", outputBinding())>
+<setDefaultValue("attribute", element.identifier.lowercase)>
+<setDefaultValue("binding", binding(element.identifier.lowercase))>
 
-<checkIModification("$destination_", "$attribute", type)>
+<createAttrsOfAllParameters("attrs", element.members)>
 
-<createAttrsOfAllParameters("attrs", body.allParameters)>
-
-return <ngsCreateTypedObject("$destination_", "$attribute", type, "$binding", "$attrs")>
+<return(callCreate(element.identifier.value, "$destination_", "$attribute_", "$binding_", "$attrs"))>
 >>
 
-iConstructorTypes(params) ::= <<
-<params:parameterToTypeCheck()><\\>
-<typeCheck("$destination", "String")><\\>
-<typeCheck("$attribute", "String")><\\>
-<typeCheck("$binding", "Binding")>
+
+oConstructorArguments(members) ::= <<
+<requiredParametersAsArguments(members)><\\>
+<optionalParametersAsArguments(members)><\\>
+<optionalArguments(["destination", "attribute", "binding", "state", "add_prefs"])>
 >>
 
-oConstructorArguments(params, name) ::= <<
-<requiredParametersAsArguments(params)><\\>
-<optionalParametersAsArguments(params)><\\>
-{ destination "" } <\\>
-{ attribute "<name>" } <\\>
-{ binding "\<<name>\>" } <\\>
-{ state "" } <\\>
-{ add_prefs "=" }
+oConstructorBody(element) ::= <<
+
+<setDefaultValue("destination", outputBinding())>
+<setDefaultValue("attribute", element.identifier.lowercase)>
+<setDefaultValue("binding", binding(element.identifier.lowercase))>
+<setDefaultValue("state", stateBinding())>
+<setDefaultValue("add_prefs", {"<ngsDefaultAddPrefs()>"})>
+
+<createAttrsOfAllParameters("attrs", element.members)>
+
+<return(callCreateByOperator(element.identifier.value, "$destination_", "$attribute_", "$binding_", "$state_", "$add_prefs_", "$attrs"))>
 >>
-
-oConstructorBody(body, type) ::= <<
-<checkRhsProposal()>
-<checkTypes(oConstructorTypes(body.allParameters))>
-<claimBinding("$binding", type)>
-
-<setDefaultValue("state", getStateBinding())>
-<setDefaultValue("destination", getOutputBinding())>
-
-<checkOModification("$destination_", "$attribute", type)>
-
-<createAttrsOfAllParameters("attrs", body.allParameters)>
-
-return <ngsCreateTypedObjectByOperator("$state_", "$destination_", "$attribute", type, "$binding", "$attrs", ngsAddToSet(), "$add_prefs")>
->>
-
-oConstructorTypes(params) ::= <<
-<params:parameterToTypeCheck()><\\>
-<typeCheck("$destination", "String")><\\>
-<typeCheck("$attribute", "String")><\\>
-<typeCheck("$binding", "Binding")><\\>
-<typeCheck("$state", "Binding?")><\\>
-<typeCheck("$add_prefs", "Preferences")>
->>
-
