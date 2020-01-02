@@ -91,7 +91,7 @@ glideProcs() ::= <<
 # would be to use the relative path and filename of the current file.
 #
 # Yes, ideally this would be set automagically, but JTCL is awful and doesn't
-# support [info frame], so scripts can progmatically determine where they are.
+# support [info frame], so scripts can't progmatically determine where they are.
 # Call your congressional representatives and complain.
 #
 #
