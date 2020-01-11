@@ -13,7 +13,7 @@ echo "Setting internalNexusPassword..."
 echo "internalNexusPassword=$INTERNAL_NEXUS_PASSWORD" >> gradle/gradle.properties
 
 set -x
-export GRADLE_USER_HOME="${ROOT_FOLDER}/gradle"
+export GRADLE_USER_HOME="${BUILD_DIR}/gradle"
 cd source
 
 version=`./gradlew printVersion|grep "\-SNAPSHOT" || true`
