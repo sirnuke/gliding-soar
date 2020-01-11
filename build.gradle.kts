@@ -24,6 +24,12 @@ dependencies {
     }
 }
 
+tasks.register("printVersion") {
+  doLast {
+    println(project.version)
+  }
+}
+
 subprojects {
   apply(plugin = "java")
   apply(plugin = "org.jetbrains.kotlin.jvm")
