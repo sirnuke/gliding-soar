@@ -1,0 +1,18 @@
+platform: linux
+inputs:
+  - name: source
+image_resource:
+  type: docker-image
+  source:
+    username: ((nexus_username))
+    password: ((nexus_password))
+    repository: "paradiso.nexus:8083/ci/gradle"
+    insecure_registries: ["paradiso.nexus:8083"]
+params:
+  INTERNAL_NEXUS_USERNAME: ((nexus_username))
+  INTERNAL_NEXUS_PASSWORD: ((nexus_password))
+caches:
+  - path: gradle/wrapper
+  - path: gradle/caches
+run:
+  path: source/ci/build.sh

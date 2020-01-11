@@ -1,0 +1,19 @@
+resources:
+  - name: source
+    type: git
+    source:
+      uri: "https://github.com/sirnuke/gliding-soar.git"
+      tag_filter: "v*"
+      username: ((github_username))
+      password: ((github_access_token))
+    check_every: "30m"
+
+jobs:
+  - name: gradle
+    plan:
+      - get: source
+        trigger: true
+      - task: execute-gradle
+        file: source/ci/build.yml
+        params:
+          BUILD_TYPE: release
