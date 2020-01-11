@@ -17,3 +17,6 @@ jobs:
         file: source/ci/build.yml
         params:
           BUILD_TYPE: release
+        vars:
+          nexus_username: ((nexus_username))
+          nexus_password: ((nexus_password))

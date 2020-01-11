@@ -15,3 +15,6 @@ jobs:
         file: source/ci/build.yml
         params:
           BUILD_TYPE: snapshot
+        vars:
+          nexus_username: ((nexus_username))
+          nexus_password: ((nexus_password))
