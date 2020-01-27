@@ -1,13 +1,15 @@
 import "common.stg"
 
-bundle(model, root, arguments, version, when) ::= <<
+bundle(model, root, standalone, arguments, version, when) ::= <<
 <header(version, when, arguments)>
 
 <root.children:childNamespace()>
 <root.elements; separator="\n">
 
+<if(standalone)>
 <topProcs()>
 <namespace("glide", glideProcs())>
+<endif>
 >>
 
 header(version, when, arguments) ::= <<

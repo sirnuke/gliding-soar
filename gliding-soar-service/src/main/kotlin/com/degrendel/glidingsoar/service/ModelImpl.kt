@@ -10,7 +10,7 @@ import java.time.Instant
 import java.util.*
 import kotlin.collections.ArrayList
 
-class ModelImpl(private val arguments: Array<String>?) : Model
+class ModelImpl(private val arguments: Array<String>?, private val standalone: Boolean) : Model
 {
   companion object
   {

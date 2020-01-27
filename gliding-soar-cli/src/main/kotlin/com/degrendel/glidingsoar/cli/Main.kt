@@ -36,6 +36,9 @@ class Main(private val args: Array<String>) : Callable<Int>
   @Parameters(paramLabel = "target", description = ["List of files to parse or directories to search"], arity = "1..*")
   private var targets: List<File> = mutableListOf()
 
+  @Option(names = ["--standalone", "-s"], description= ["Whether this a standalone bundle (aka should the common functions be defined?)"])
+  private var standalone = true
+
   // NOTE: Ideally would use Files.isSameFile, but that throws an exception if the file is missing
   // Java! \o/
   private fun isOutput(outputFile: URI?, file: File): Boolean =
@@ -45,7 +48,7 @@ class Main(private val args: Array<String>) : Callable<Int>
   {
     L.info("Running Glide CLI version {}", Version.VERSION)
     val outputUri = outputFile?.toPath()?.toAbsolutePath()?.normalize()?.toUri()
-    val model = ModelImpl(args)
+    val model = ModelImpl(args, standalone)
     targets.forEach {
       if (isOutput(outputUri, it))
       {
