@@ -9,17 +9,28 @@ sealed class Symbol
 {
   abstract val name: String
   abstract val firstReference: ASTNode
+  abstract val fullyQualified: String
 }
 
 data class NamespaceSymbol(val namespace: ChildNamespace, override val firstReference: ASTNode) : Symbol()
 {
   override val name = namespace.name
+
+  override val fullyQualified: String
+    get() = namespace.fullyQualified
 }
 
-data class ElementSymbol(val element: Element) : Symbol()
+data class ElementSymbol(val element: Element, val namespace: Namespace) : Symbol()
 {
   override val name = element.identifier.value
   override val firstReference = element
+
+  override val fullyQualified: String
+    get() =
+      if (namespace is RootNamespace)
+        name
+      else
+        "${namespace.fullyQualified}.name"
 }
 
 sealed class Namespace()
@@ -46,7 +57,7 @@ sealed class Namespace()
   private fun addElementSymbol(element: Element): ElementSymbol
   {
     _elements.add(element)
-    val symbol = ElementSymbol(element)
+    val symbol = ElementSymbol(element, this)
     addSymbol(symbol)
     return symbol
   }
