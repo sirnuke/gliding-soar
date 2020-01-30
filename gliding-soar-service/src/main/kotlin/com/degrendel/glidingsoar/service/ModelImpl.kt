@@ -59,6 +59,7 @@ class ModelImpl(private val arguments: Array<String>?, private val standalone: B
     bundle.add("version", Version.VERSION)
     bundle.add("when", Instant.now())
     bundle.add("arguments", arguments)
+    bundle.add("standalone", standalone)
     bundle.add("root", root)
     return bundle.render()
   }
