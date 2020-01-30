@@ -96,7 +96,7 @@ glideProcs() ::= <<
 # support [info frame], so scripts can't progmatically determine where they are.
 # Call your congressional representatives and complain.
 #
-#
+# keywords  List of tokens to combine into the scope
 <proc(name=funcSetScope(), args="keywords", public=true, body={<\\>
 variable <scopeVariable()> [join $keywords *]<\\>
 })>
