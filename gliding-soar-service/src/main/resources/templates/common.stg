@@ -137,8 +137,8 @@ if { <condition> } {
 }
 >>
 
-foreach(source, var, block) ::= <<
-foreach <source> <toSafeVar(var)> {
+foreach(var, list, block) ::= <<
+foreach <var> <list> {
     <block>
 }
 >>
@@ -153,7 +153,7 @@ toSafeVar(name) ::= "${<name>}"
 
 return(statement) ::= "return <statement>"
 
-set(var, string) ::= "set <var> <string>"
+set(var, value_) ::= "set <var> <value_>"
 
 list(words) ::= <<
 [list <words; separator=" ">]
