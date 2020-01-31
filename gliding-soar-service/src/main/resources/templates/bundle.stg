@@ -112,8 +112,8 @@ variable <scopeVariable()> [join $keywords *]<\\>
 ]))>
 <claimBinding("$binding", "$type")>
 <checkIModification("$destination", "$attribute", "$type")>
-# TODO: Convert attrs
-<return(ngsCreateTypedObject("$destination", "$attribute", "$type", "$binding", "$attrs"))><\\>
+<set(var="attrs_", value_={[<funcConvertAttrs()> $attrs]})>
+<return(ngsCreateTypedObject("$destination", "$attribute", "$type", "$binding", "$attrs_"))><\\>
 })>
 
 <proc(name=funcCreateByOperator(), args="type destination attribute binding state add_prefs attrs", public=true, body={<\\>
@@ -130,8 +130,8 @@ variable <scopeVariable()> [join $keywords *]<\\>
 
 <claimBinding("$binding", "$type")>
 <checkOModification("$destination", "$attribute", "$type")>
-# TODO: Convert attrs
-<return(ngsCreateTypedObjectByOperator("$state", "$destination", "$attribute", "$type", "$binding", "$attrs", ngsAddToSet(), "$add_prefs"))><\\>
+<set(var="attrs_", value_={[<funcConvertAttrs()> $attrs]})>
+<return(ngsCreateTypedObjectByOperator("$state", "$destination", "$attribute", "$type", "$binding", "$attrs_", ngsAddToSet(), "$add_prefs"))><\\>
 })>
 
 <proc(name=funcCheckRhs(), args="type", public=true, body={<\\>
@@ -167,6 +167,14 @@ variable <scopeVariable()> [join $keywords *]<\\>
 <proc(name=funcOutputBinding(), args="", public=true, body={<\\>
 # TODO: Stub!
 <return(binding("output-link"))><\\>
+})>
+
+<proc(name=funcConvertAttrs(), args="attrs", public=false, body={<\\>
+<set("result", {""})>
+<foreach("attr", "$attrs", {<\\>
+    lappend result [lindex $attr 0] [lindex $attr 1]<\\>
+})>
+<return("$result")><\\>
 })>
 >>
 

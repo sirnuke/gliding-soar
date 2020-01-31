@@ -28,6 +28,7 @@ funcCheckIMod() ::= "_check-i-modification"
 funcCheckOMod() ::= "_check-o-modification"
 funcCreate() ::= "_create"
 funcCreateByOperator() ::= "_create_by_operator"
+funcConvertAttrs() ::= "_convert_attrs"
 
 checkRhsElaboration() ::= "<funcCheckRhs()> elaboration"
 checkRhsProposal()    ::= "<funcCheckRhs()> proposal"
