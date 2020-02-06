@@ -4,6 +4,9 @@ import com.degrendel.glidingsoar.common.ast.ASTNode
 import com.degrendel.glidingsoar.common.ast.Element
 import com.degrendel.glidingsoar.common.ast.Identifier
 import com.degrendel.glidingsoar.common.ast.ResolvedIdentifier
+import org.jgrapht.graph.DefaultEdge
+import org.jgrapht.graph.DirectedAcyclicGraph
+import java.lang.IllegalArgumentException
 
 sealed class Symbol
 {
@@ -62,9 +65,9 @@ sealed class Namespace()
     return symbol
   }
 
-  protected fun addElement(path: Iterator<Identifier>, element: Element)
+  protected fun addElement(path: Iterator<Identifier>, element: Element): ElementSymbol
   {
-    if (!path.hasNext())
+    return if (!path.hasNext())
     {
       val existing = symbols[element.identifier.value]
       if (existing != null)
@@ -138,13 +141,49 @@ class RootNamespace : Namespace()
     val L by logger()
   }
 
+  fun resolve(identifier: ResolvedIdentifier, reference: ElementSymbol, root: RootNamespace): Element
+  {
+    val namespace = if (identifier.namespace.isEmpty())
+      root
+    else
+      root.resolveNamespace(identifier, identifier)
+    val results = namespace.elements.filter { it.identifier.value == identifier.value }
+    return when
+    {
+      results.isEmpty() -> throw UnknownSymbolException("Error while resolving type hierarchy", identifier.value, identifier)
+      results.size > 1 -> throw IllegalStateException("Found multiple symbol elements in ${reference.namespace} with identifier ${identifier.value}")
+      else -> results.first()
+    }
+  }
+
+  private val hierarchy = DirectedAcyclicGraph<Element, DefaultEdge>(DefaultEdge::class.java)
+  private val allElements = ArrayList<ElementSymbol>()
+
   override val root = this
   override val name = ""
   override val fullyQualified = ""
 
+  fun generateHierarchy()
+  {
+    allElements.forEach {
+      try
+      {
+        it.element.extends.forEach { extend -> hierarchy.addEdge(it.element, resolve(extend, it)) }
+      }
+      catch (e: IllegalArgumentException)
+      {
+        L.error("Cycle detected", e)
+        TODO("Handle cycles!")
+      }
+    }
+  }
+
   fun addElements(elements: List<Element>)
   {
-    elements.forEach { addElement(it.identifier.namespace.iterator(), it) }
+    elements.forEach {
+      hierarchy.addVertex(it)
+      allElements.add(addElement(it.identifier.namespace.iterator(), it))
+    }
   }
 }
 
