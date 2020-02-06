@@ -168,7 +168,7 @@ class RootNamespace : Namespace()
     allElements.forEach {
       try
       {
-        it.element.extends.forEach { extend -> hierarchy.addEdge(it.element, resolve(extend, it)) }
+        it.element.extends.forEach { extend -> hierarchy.addEdge(it.element, resolve(extend, it, this)) }
       }
       catch (e: IllegalArgumentException)
       {
