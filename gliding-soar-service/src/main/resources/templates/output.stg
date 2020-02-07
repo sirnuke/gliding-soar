@@ -13,9 +13,9 @@ body(element) ::= <<
 >>
 
 constructors(element) ::= <<
-<proc(name="create", args=iConstructorArguments(element.members), body=iConstructorBody(element), public=true)>
+<proc(name="create", args=iConstructorArguments(element.allMembers), body=iConstructorBody(element), public=true)>
 
-<proc(name="create-by-operator", args=oConstructorArguments(element.members), body=oConstructorBody(element), public=true)>
+<proc(name="create-by-operator", args=oConstructorArguments(element.allMembers), body=oConstructorBody(element), public=true)>
 >>
 
 iConstructorArguments(members) ::= <<
@@ -30,7 +30,7 @@ iConstructorBody(element) ::= <<
 <setDefaultValue("attribute", element.identifier.lowercase)>
 <setDefaultValue("binding", binding(element.identifier.lowercase))>
 
-<createAttrsOfAllParameters("attrs", element.members)>
+<createAttrsOfAllParameters("attrs", element.allMembers)>
 
 <return(callCreate(element.identifier.value, "$destination_", "$attribute_", "$binding_", "$attrs"))>
 >>
@@ -50,7 +50,7 @@ oConstructorBody(element) ::= <<
 <setDefaultValue("state", stateBinding())>
 <setDefaultValue("add_prefs", {"<ngsDefaultAddPrefs()>"})>
 
-<createAttrsOfAllParameters("attrs", element.members)>
+<createAttrsOfAllParameters("attrs", element.allMembers)>
 
 <return(callCreateByOperator(element.identifier.value, "$destination_", "$attribute_", "$binding_", "$state_", "$add_prefs_", "$attrs"))>
 >>
