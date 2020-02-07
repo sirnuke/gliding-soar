@@ -7,24 +7,7 @@ output(element) ::= <<
 body(element) ::= <<
 <ngsDeclareType(element.identifier.value)>
 
-<constructors(element)>
-
-# TODO: Other functions?
->>
-
-constructors(element) ::= <<
-<proc(name="create", args=iConstructorArguments(element.allMembers), body=iConstructorBody(element), public=true)>
-
-<proc(name="create-by-operator", args=oConstructorArguments(element.allMembers), body=oConstructorBody(element), public=true)>
->>
-
-iConstructorArguments(members) ::= <<
-<requiredParametersAsArguments(members)><\\>
-<optionalParametersAsArguments(members)><\\>
-<optionalArguments(["destination", "attribute", "binding"])>
->>
-
-iConstructorBody(element) ::= <<
+<proc(name="create", public=true, args=iConstructorArguments(element.allMembers), body={<\\>
 
 <setDefaultValue("destination", outputBinding())>
 <setDefaultValue("attribute", element.identifier.lowercase)>
@@ -32,18 +15,11 @@ iConstructorBody(element) ::= <<
 
 <createAttrsOfAllParameters("attrs", element.allMembers)>
 
-<return(callCreate(element.identifier.value, "$destination_", "$attribute_", "$binding_", "$attrs"))>
->>
+<return(callCreate(element.identifier.value, "$destination_", "$attribute_", "$binding_", "$attrs"))><\\>
+})>
 
-
-oConstructorArguments(members) ::= <<
-<requiredParametersAsArguments(members)><\\>
-<optionalParametersAsArguments(members)><\\>
-<optionalArguments(["destination", "attribute", "binding", "state", "add_prefs"])>
->>
-
-oConstructorBody(element) ::= <<
-
+<proc(name="create-by-operator", public=true, args=oConstructorArguments(element.allMembers), body={<\\>
+<\\>
 <setDefaultValue("destination", outputBinding())>
 <setDefaultValue("attribute", element.identifier.lowercase)>
 <setDefaultValue("binding", binding(element.identifier.lowercase))>
@@ -52,5 +28,32 @@ oConstructorBody(element) ::= <<
 
 <createAttrsOfAllParameters("attrs", element.allMembers)>
 
-<return(callCreateByOperator(element.identifier.value, "$destination_", "$attribute_", "$binding_", "$state_", "$add_prefs_", "$attrs"))>
+<return(callCreateByOperator(element.identifier.value, "$destination_", "$attribute_", "$binding_", "$state_", "$add_prefs_", "$attrs"))><\\>
+})>
+
+<proc(name="deploy", public=true, args={binding <optionalArguments("attribute", "destination")>}, body={<\\>
+<\\>
+<setDefaultValue("destination", outputBinding())>
+<setDefaultValue("attribute", element.identifier.lowercase)>
+})>
+
+<proc(name="deploy-by-operator", public=true, args={binding <optionalArguments("attribute", "destination", "state", "add_prefs")>}, body={<\\>
+<\\>
+<setDefaultValue("destination", outputBinding())>
+<setDefaultValue("attribute", element.identifier.lowercase)>
+<setDefaultValue("state", stateBinding())>
+})>
+
+>>
+
+iConstructorArguments(members) ::= <<
+<requiredParametersAsArguments(members)><\\>
+<optionalParametersAsArguments(members)><\\>
+<optionalArguments(["destination", "attribute", "binding"])>
+>>
+
+oConstructorArguments(members) ::= <<
+<requiredParametersAsArguments(members)><\\>
+<optionalParametersAsArguments(members)><\\>
+<optionalArguments(["destination", "attribute", "binding", "state", "add_prefs"])>
 >>
