@@ -1,9 +1,6 @@
 package com.degrendel.glidingsoar.common.ast
 
-import com.degrendel.glidingsoar.common.DuplicateExtendsException
-import com.degrendel.glidingsoar.common.InheritanceCycleException
 import com.degrendel.glidingsoar.common.InvalidExtendsTypeException
-import com.degrendel.glidingsoar.common.RootNamespace
 
 class Element(override val location: Location, val type: ElementType, val identifier: ResolvedIdentifier, val extends: List<ResolvedIdentifier>, val members: List<Member>, val matches: List<Match>) : ASTNode
 {
@@ -54,13 +51,13 @@ class Element(override val location: Location, val type: ElementType, val identi
       }
       it.members.forEach { candidate ->
         val existing = membersByName[candidate.identifier.value]
-        if (existing == null)
+        if (existing != null)
         {
-          _allMembers.add(candidate)
-          membersByName[candidate.identifier.value] = candidate
-        }
-        else
           existing.checkOverride(candidate)
+          return
+        }
+        _allMembers.add(candidate)
+        membersByName[candidate.identifier.value] = candidate
       }
     }
   }
