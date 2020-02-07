@@ -54,7 +54,7 @@ class ModelImpl(private val arguments: Array<String>?, private val standalone: B
   {
     L.info("Generating bundle")
     val bundle = template.getInstanceOf("bundle")
-    elements.filterNot { it.resolved }.forEach { it.resolve(root, listOf()) }
+    root.resolve()
     bundle.add("model", this)
     bundle.add("version", Version.VERSION)
     bundle.add("when", Instant.now())

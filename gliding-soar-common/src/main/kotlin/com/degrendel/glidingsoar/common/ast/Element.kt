@@ -17,58 +17,52 @@ class Element(override val location: Location, val type: ElementType, val identi
 
   override val children = ArrayList<ASTNode>()
 
-  private var _resolved = false
-  val resolved get() = _resolved
-
   val tangible: Boolean get() = type != ElementType.INTERFACE
+
+  private val _allMembers = mutableListOf<Member>()
+  val allMembers: List<Member> get() = _allMembers
+
+  private val _types = mutableListOf<ResolvedIdentifier>()
+  val types: List<ResolvedIdentifier> get() = _types
+
+  private val membersByName = mutableMapOf<String, Member>()
 
   init
   {
     children.add(identifier)
     children.addAll(extends)
+    _allMembers.addAll(members)
+    members.forEach { membersByName[it.identifier.value] = it }
   }
 
-  fun resolve(root: RootNamespace, chain: List<Element>)
+  fun resolve(parents: Set<Element>)
   {
-    if (resolved)
-      throw IllegalStateException("Attempting to resolve already resolved element $this")
-
-    if (chain.contains(this))
-      throw InheritanceCycleException("Unable to resolve symbols", chain.first(), this)
-
-    val namespace = root.resolveNamespace(this, identifier)
-
-    val parentsList = extends.map { namespace.resolveElement(this, it) }
-    val parents = parentsList.toSet()
-    val extendedChain = chain.plus(this)
-    parentsList.minus(parents).forEach { throw DuplicateExtendsException("Multiple references in extends", this, it) }
-    parents.filterNot { it.resolved }.forEach { it.resolve(root, extendedChain) }
-
-    // TODO: This feels 10x more verbose than it needs to be
-    parents.forEach { extendWith(it) }
-
-    _resolved = true
-  }
-
-  private fun extendWith(parent: Element)
-  {
-    when (parent.type)
-    {
-      ElementType.INTERFACE ->
+    parents.forEach {
+      _types.add(it.identifier)
+      when (it.type)
       {
+        ElementType.INTERFACE -> { }
+        ElementType.OBJECT ->
+          if (type == ElementType.INTERFACE)
+            throw InvalidExtendsTypeException("Interfaces can only extend other interfaces", this, it)
+        ElementType.OUTPUT ->
+          if (type != ElementType.OUTPUT)
+            throw InvalidExtendsTypeException("Only output elements can extend other outputs", this, it)
+        ElementType.INPUT ->
+          if (type != ElementType.INPUT)
+            throw InvalidExtendsTypeException("Only input elements can extend other inputs", this, it)
       }
-      ElementType.OBJECT ->
-        if (type == ElementType.INTERFACE)
-          throw InvalidExtendsTypeException("Interfaces can only extend other interfaces", this, parent)
-      ElementType.OUTPUT ->
-        if (type != ElementType.OUTPUT)
-          throw InvalidExtendsTypeException("Only output elements can extend other outputs", this, parent)
-      ElementType.INPUT ->
-        if (type != ElementType.INPUT)
-          throw InvalidExtendsTypeException("Only input elements can extend other inputs", this, parent)
+      it.members.forEach { candidate ->
+        val existing = membersByName[candidate.identifier.value]
+        if (existing == null)
+        {
+          _allMembers.add(candidate)
+          membersByName[candidate.identifier.value] = candidate
+        }
+        else
+          existing.checkOverride(candidate)
+      }
     }
-    // TODO: Iterate over members and matches, check compatibility, and add to list as necessary
-    TODO("Actual extends isn't implemented!")
   }
 }
 

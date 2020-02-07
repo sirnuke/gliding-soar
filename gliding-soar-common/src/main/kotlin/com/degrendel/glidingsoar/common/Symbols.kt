@@ -141,7 +141,7 @@ class RootNamespace : Namespace()
     val L by logger()
   }
 
-  fun resolve(identifier: ResolvedIdentifier, reference: ElementSymbol, root: RootNamespace): Element
+  private fun resolve(identifier: ResolvedIdentifier, reference: ElementSymbol, root: RootNamespace): Element
   {
     val namespace = if (identifier.namespace.isEmpty())
       root
@@ -163,7 +163,7 @@ class RootNamespace : Namespace()
   override val name = ""
   override val fullyQualified = ""
 
-  fun generateHierarchy()
+  fun resolve()
   {
     allElements.forEach {
       try
@@ -176,6 +176,7 @@ class RootNamespace : Namespace()
         TODO("Handle cycles!")
       }
     }
+    allElements.forEach { it.element.resolve(hierarchy.getDescendants(it.element)) }
   }
 
   fun addElements(elements: List<Element>)

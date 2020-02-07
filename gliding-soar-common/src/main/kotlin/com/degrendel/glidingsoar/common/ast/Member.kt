@@ -16,5 +16,11 @@ data class Member(override val location: Location, val support: SupportType, val
     children.add(identifier)
     children.add(type)
   }
+
+  fun checkOverride(other: Member)
+  {
+    assert(other.identifier.value == identifier.value)
+    TODO("Stub!")
+  }
 }
 
