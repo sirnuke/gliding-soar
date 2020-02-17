@@ -54,7 +54,7 @@ subprojects {
         val releasesRepoUrl = "$internalNexusURL/repository/maven-releases/"
         val snapshotsRepoUrl = "$internalNexusURL/repository/maven-snapshots/"
         url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl)
-        name = "Internal Nexus"
+        name = "Internal-Nexus"
       }
     }
   }
