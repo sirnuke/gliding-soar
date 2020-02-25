@@ -18,6 +18,19 @@ sp "$SCOPE*elaborate*fresh*message
 -->
     [ngs-tag <message-1> $FRESH_TAG]"
 
+sp "$SCOPE*elaborate*fresh*message
+    [ngs-match-goal <s> $G_MAINTAIN_F_CHAIN <g>]
+    [lhs <s> {
+        [Channel::bind {
+            [Behaviors::bind {
+                [FChain::bind [test {last as <last>}]]
+            }]
+        }]
+        [Message:bind {
+            [tags::not-self]
+            [Parse::bind {
+                
+
 prod $SCOPE*elaborate*fresh*message when {
     [::Channel::bind {
         [::Behaviors::bind {
@@ -223,7 +236,7 @@ namespace eval Response {
         ngs-create-typed-object
     }
 
-    proc bind { args } {
+    proc bind { block { attribute "" } { binding "" } } {
         bind to Response
     }
 }
