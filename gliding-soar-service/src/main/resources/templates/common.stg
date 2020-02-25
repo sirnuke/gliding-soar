@@ -66,26 +66,6 @@ createAttrFromMember(member) ::= <<
 <endif>
 >>
 
-/*
-createAttrFromRequiredSingleParameter(param) ::= <<
-<if(!param.optional&&!param.multiple)><\\>
-<param.identifier.value> <toSafeVar(param.identifier.value)><\\>
-<endif>
->>
-
-createAttrFromOptionalSingleParameter(param, var) ::= <<
-<if(param.optional&&!param.multiple)><\\>
-<if_({<toSafeVar(param.identifier.value)> ne ""}, {dict lappend <var> <param.identifier.value> <toSafeVar(param.identifier.value)>})><\\>
-<endif>
->>
-
-createAttrFromMultipleParameter(param, var) ::= <<
-<if(param.multiple)><\\>
-<foreach("val", param.identifier.value, {dict lappend <var> <param.identifier.value> $val})>
-<endif>
->>
-*/
-
 scopeVariable() ::= "::glide::_scope"
 
 /*
