@@ -8,8 +8,11 @@ import java.net.URI
 interface Model
 {
   fun bundle(): String
-  fun parseFile(uri: URI)
-  fun parseString(source: String, contents: String)
+  fun parseSoarFile(uri: URI)
+  fun parseSoarString(source: String, contents: String)
+
+  fun parseGlideFile(uri: URI)
+  fun parseGlideString(source: String, contents: String)
 }
 
 class DuplicateSymbolException(message: String, name: String, first: ASTNode, second: ASTNode)

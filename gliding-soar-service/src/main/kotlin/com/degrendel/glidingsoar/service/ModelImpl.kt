@@ -20,6 +20,7 @@ class ModelImpl(private val arguments: Array<String>?, private val standalone: B
   private val root = RootNamespace()
   private val elements = mutableListOf<Element>()
   private val template = STGroupFile(javaClass.getResource("/templates/bundle.stg"))
+  private val parser = BlockParser()
 
   private object ElementRenderer : AttributeRenderer
   {
@@ -64,19 +65,44 @@ class ModelImpl(private val arguments: Array<String>?, private val standalone: B
     return bundle.render()
   }
 
-  override fun parseFile(uri: URI)
+  override fun parseSoarFile(uri: URI)
   {
-    L.info("Parsing URI {}", uri)
-    parseContents(uri.path, File(uri.path).readText())
+    L.info("Parsing Soar from URI {}", uri)
+    parseInlineContents(uri.path, File(uri.path).readText())
   }
 
-  override fun parseString(source: String, contents: String)
+  override fun parseSoarString(source: String, contents: String)
   {
-    L.info("Parsing string from {} of length {}", source, contents.length)
-    parseContents(source, contents)
+    L.info("Parsing Soar from string {} of length {}", source, contents.length)
+    parseInlineContents(source, contents)
   }
 
-  private fun parseContents(source: String, contents: String)
+  override fun parseGlideFile(uri: URI)
+  {
+    L.info("Parsing Glide from URI {}", uri)
+    parseRawContents(uri.path, File(uri).readText())
+  }
+
+  override fun parseGlideString(source: String, contents: String)
+  {
+    L.info("Parsing Glide from string {} of length {}", source, contents.length)
+    parseRawContents(source, contents)
+  }
+
+  private fun parseRawContents(source: String, contents: String)
+  {
+    val results: List<Element>
+    when (val result = parser.parse(Location(source, 0, 0), contents))
+    {
+      is ParseSuccess -> results = result.elements
+      is ParseFailure -> throw GlideParseException(result.toHumanString())
+    }
+    L.info("Found {} elements", results.size)
+    elements.addAll(results)
+    root.addElements(results)
+  }
+
+  private fun parseInlineContents(source: String, contents: String)
   {
     // TODO: This is kinda painful
     // Being able to filter content on a start/stop predicate feels like it should be possible, but maybe not in Kotlin?
@@ -88,7 +114,6 @@ class ModelImpl(private val arguments: Array<String>?, private val standalone: B
     val results = ArrayList<Element>()
     val body = ArrayList<String>()
     var inBody = false
-    val parser = BlockParser()
     contents.lines().forEachIndexed { index, line ->
       when (inBody)
       {
