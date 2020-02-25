@@ -4,7 +4,7 @@
 
 LHS: *Bind, Match*
 
-RHS: *Set, Add, Replace, Remove*
+RHS: *Set, Apply, Add, Remove*
 
 ### Bind
 
@@ -33,11 +33,34 @@ Test must be one of the following:
 
 Multiple `test value` pairs can be included in a single match call.
 
-### Add, Set, AddTo, Remove
+### Set
 
-`Set(^member <block>)`
+`Set(<binding> ^member value)`
 
+Add one or more member to values with i-support.  If binding is missing, the production will lookup
+a bound object with the same type.  Since this cannot be tracked at compile time, does not prevent or deny multiple
+values for each member.
 
+### Apply
+
+`Apply(<binding> ^member value)`
+
+Sets one or members to values with o-support, replacing the existing values if found.  If binding is missing, the
+production will lookup a bound object with the same type.
+
+### Add
+
+`Add(<binding> ^member value)`
+
+Adds one or more members with values using o-support, adding to the existing values.  If binding is missing, the
+production will lookup a bound object with the same type.
+
+### Remove
+
+`Remove(<binding> ^member value)`
+
+Removes one or more members with values using o-support.  If binding is missing, the production will lookup a bound
+object with the same type.
 
 ## Input
 
@@ -45,11 +68,36 @@ LHS: *Bind, Match*
 
 ## Object
 
-Construct, initiate, bind, match, add, set, modify, remove
+LHS: *Bind, Match*
+RHS: *Construct, Initiate, Set, Apply, Add, Remove*
+
+### Construct
+
+`Construct(<parent> ^attribute ^member value as <binding>)`
+
+Creates new object with o-support with multiple ^member value pairs.  If ^attribute is not set, assumed to be the type
+name in lowercase.  If the parent binding is not known, assumed to be subobject.  Attempts to evaluate whether all
+objects can be constructed in a single operator, as per NGS rules.  If `as <binding>` is missing, auto generates a
+name in the form of `<typeX>`.
+
+### Initiate
+
+`Initiate(<parent> ^attribute ^member value as <binding>)`
+
+Creates a new object with i-support.  Unlike construct, there are no restrictions on the number and structure of
+objects created in a single production.
 
 ## Output
 
-Construct, initiate, bind, match, add, set, modify, remove, deploy
+LHS: *Bind, Match*
+RHS: *Construct, Initiate, Deply, Set, Apply, Add, Remove*
+
+### Deploy
+
+`Deploy(^attribute <binding>)`
+
+Deep copies this binding to the output link.  If `^attribute` is not set, assumed to be the type name in lowercase.
+Root object is always assumed to be the output link.
 
 ## Tags
 
