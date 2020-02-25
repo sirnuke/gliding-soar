@@ -5,6 +5,8 @@ output(element) ::= "<namespace(element.identifier.value, body(element))>"
 body(element) ::= <<
 <ngsDeclareType(element.identifier.value)>
 
+<defineMembers(element)>
+
 <proc(name="create", public=true, args=iConstructorArguments(element.allMembers), body={<\\>
 
 <setDefaultValue("destination", outputBinding())>
