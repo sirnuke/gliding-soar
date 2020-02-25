@@ -28,17 +28,19 @@ class ModelImpl(private val arguments: Array<String>?, private val standalone: B
     private val output = outputTemplate.getInstanceOf("output")
     private val inputTemplate = STGroupFile(javaClass.getResource("/templates/input.stg"))
     private val input = inputTemplate.getInstanceOf("input")
+    private val objectTemplate = STGroupFile(javaClass.getResource("/templates/object.stg"))
+    private val `object` = objectTemplate.getInstanceOf("object")
 
     override fun toString(obj: Any, formatString: String?, locale: Locale?): String
     {
       if (obj !is Element)
-        throw IllegalArgumentException("ElementRenderer recieved unexpected non-Element ${obj::class.java}: $obj")
+        throw IllegalArgumentException("ElementRenderer received unexpected non-Element ${obj::class.java}: $obj")
       L.info("Converting element {} of type {} to a string", obj, obj.type)
       val renderer = when (obj.type)
       {
         Element.ElementType.OUTPUT -> output
         Element.ElementType.INPUT -> input
-        Element.ElementType.OBJECT -> TODO("Objects aren't implemented!")
+        Element.ElementType.OBJECT -> `object`
         Element.ElementType.INTERFACE -> return ""
       }
       renderer.add("element", obj)

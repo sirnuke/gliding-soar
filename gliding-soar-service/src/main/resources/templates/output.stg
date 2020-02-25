@@ -1,8 +1,6 @@
 import "common.stg"
 
-output(element) ::= <<
-<namespace(element.identifier.value, body(element))>
->>
+output(element) ::= "<namespace(element.identifier.value, body(element))>"
 
 body(element) ::= <<
 <ngsDeclareType(element.identifier.value)>
