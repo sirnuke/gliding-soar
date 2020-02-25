@@ -103,7 +103,10 @@ ngsDeclareType(type) ::= "::NGS_DeclareType <type> {}"
 ngsCreateAttribute(binding, attribute, val) ::= "[ngs-create-attribute <binding> <attribute> <val>]"
 ngsCreateTypedObject(destination, attribute, type, binding, attrs) ::= "[ngs-create-typed-object <destination> <attribute> <type> <binding> <attrs>]"
 ngsCreateTypedObjectByOperator(state, destination, attribute, type, binding, attrs, action, prefs) ::= "[ngs-create-typed-object-by-operator <state> <destination> <attribute> <type> <binding> <attrs> <action> <prefs>]"
+ngsDeepCopy(state, destination, attribute, binding, action, prefs) ::= "[ngs-deep-copy-by-operator <state> <destination> <attribute> <binding> <action> <prefs>]"
+
 ngsAddToSet() ::= "$::NGS_ADD_TO_SET"
+ngsReplaceIfExists() ::= "$::NGS_REPLACE_IF_EXISTS"
 
 ngsDefaultAddPrefs() ::= "="
 
