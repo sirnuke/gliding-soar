@@ -16,6 +16,8 @@ optionalParametersAsArguments(members) ::= <<
 }>
 >>
 
+memberDefinitionVariable() ::= "members"
+
 funcSetScope() ::= "set-scope"
 funcCheckRhs() ::= "_check-rhs"
 funcCheckTypes() ::= "_check-types"
@@ -32,6 +34,23 @@ funcConvertAttrs() ::= "_convert_attrs"
 
 checkRhsElaboration() ::= "<funcCheckRhs()> elaboration"
 checkRhsProposal()    ::= "<funcCheckRhs()> proposal"
+
+defineMembers(element) ::= <<
+<variable(memberDefinitionVariable(), dictCreate(element.allMembers:defineMember()))>
+>>
+
+defineMember(member) ::= <<
+<member.identifier> <dictCreate({<\\>
+support <member.support.label> <\\>
+param <member.param> <\\>
+optional <member.optional> <\\>
+const <member.const> <\\>
+tag <member.tag> <\\>
+type <member.type> <\\>
+multiple <member.multiple><\\>
+})>
+>>
+
 
 checkTypes(list) ::= <<
 <funcCheckTypes()> <list; separator=" ">
@@ -142,3 +161,7 @@ set(var, value_) ::= "set <var> <value_>"
 list(words) ::= <<
 [list <words; separator=" ">]
 >>
+
+variable(var, defaultValue) ::= "variable <var> <defaultValue>"
+
+dictCreate(pairs) ::= "[dict create <pairs; separator={ }>]"
