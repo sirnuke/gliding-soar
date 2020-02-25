@@ -19,6 +19,9 @@ optionalParametersAsArguments(members) ::= <<
 memberDefinitionVariable() ::= "members"
 
 funcSetScope() ::= "set-scope"
+funcBindTo() ::= "_bind"
+funcTest() ::= "_test"
+funcCheckLhs() ::= "_check-lhs"
 funcCheckRhs() ::= "_check-rhs"
 funcCheckTypes() ::= "_check-types"
 funcClaimBinding() ::= "_claim-binding"
@@ -35,6 +38,8 @@ funcConvertAttrs() ::= "_convert_attrs"
 checkRhsElaboration() ::= "<funcCheckRhs()> elaboration"
 checkRhsProposal()    ::= "<funcCheckRhs()> proposal"
 
+checkLhs() ::= "<funcCheckLhs()>"
+
 defineMembers(element) ::= <<
 <variable(memberDefinitionVariable(), dictCreate(element.allMembers:defineMember()))>
 >>
@@ -50,7 +55,6 @@ type <member.type> <\\>
 multiple <member.multiple><\\>
 })>
 >>
-
 
 checkTypes(list) ::= <<
 <funcCheckTypes()> <list; separator=" ">

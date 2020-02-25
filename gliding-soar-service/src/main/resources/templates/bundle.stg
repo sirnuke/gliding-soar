@@ -134,6 +134,20 @@ variable <scopeVariable()> [join $keywords *]<\\>
 <return(ngsCreateTypedObjectByOperator("$state", "$destination", "$attribute", "$type", "$binding", "$attrs_", ngsAddToSet(), "$add_prefs"))><\\>
 })>
 
+<proc(name=funcBindTo(), args="type target_binding attribute block", public=true, body={<\\>
+<checkLhs()>
+# TODO: Stub!<\\>
+})>
+
+<proc(name=funcTest(), args="type binding tests", public=true, body={<\\>
+<checkLhs()>
+# TODO: Stub!<\\>
+})>
+
+<proc(name=funcCheckLhs(), args="type", public=true, body={<\\>
+# TODO: Stub!<\\>
+})>
+
 <proc(name=funcCheckRhs(), args="type", public=true, body={<\\>
 # TODO: Stub!<\\>
 })>
