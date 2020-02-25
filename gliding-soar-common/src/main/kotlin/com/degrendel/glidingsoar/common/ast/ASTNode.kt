@@ -11,6 +11,7 @@ data class Location(val source: String, val line: Int, val offset: Int)
   override fun toString() = "$source@$line:$offset"
 }
 
+// TODO: The toString overrides should /probably/ be moved to StringTemplate
 data class Identifier(override val location: Location, val value: String) : ASTNode
 {
   override val children = ArrayList<ASTNode>()
@@ -31,7 +32,7 @@ data class ResolvedIdentifier(override val location: Location, val namespace: Li
 
   val lowercase = value.toLowerCase()
 
-  override fun toString() = "${namespace.map { "${it.value}." }}$value"
+  override fun toString() = "${namespace.joinToString { "${it.value}." }}$value"
 }
 
 data class RawTcl(override val location: Location, val block: String) : ASTNode
