@@ -28,7 +28,7 @@ body(element) ::= <<
 
 <createAttrsOfAllParameters("attrs", element.allMembers)>
 
-<return(callCreateByOperator(element.identifier.value, "$destination_", "$attribute_", "$binding_", "$state_", "$add_prefs_", "$attrs"))><\\>
+<return(callCreateByOperator(element.identifier.value, "$destination_", "$attribute_", "$binding_", "$state_", ngsAddToSet(), "$add_prefs_", "$attrs"))><\\>
 })>
 
 <proc(name="deploy", public=true, args={binding <optionalArguments(["attribute", "destination", "state", "add_prefs"])>}, body={<\\>
@@ -40,7 +40,6 @@ body(element) ::= <<
 
 <return(ngsDeepCopy("$state_", "$destination_", "$attribute_", "$binding", ngsAddToSet(), "$add_prefs_"))>
 })>
-
 >>
 
 iConstructorArguments(members) ::= <<
