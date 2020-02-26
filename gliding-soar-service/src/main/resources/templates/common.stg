@@ -61,13 +61,12 @@ declareIdentifier(element) ::= "variable identifier <identifierToAttribute(eleme
 declareType(element) ::= "variable type <identifierToType(element.identifier)>"
 
 declareMembers(element) ::= <<<\\>
-variable members
 array set members "
     <element.allMembers:declareMember(); separator="\n">
 "
 >>
 
-declareMember(member) ::= <<<member.identifier> \"[dict create <\\>
+declareMember(member) ::= <<<member.identifier> { <\\>
 support <member.support.label> <\\>
 tag <member.tag> <\\>
 type <identifierToType(member.type)> <\\>
@@ -75,7 +74,7 @@ tcl <identifierToTCL(member.type)> <\\>
 optional <member.optional> <\\>
 const <member.const> <\\>
 multiple <member.multiple> <\\>
-]\">>
+}>>
 
 namespace(name, block) ::= <<
 namespace eval <name> {
