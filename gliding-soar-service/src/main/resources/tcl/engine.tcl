@@ -21,35 +21,55 @@ proc rhs { block } {
 }
 
 namespace eval Glide {
-    namespace export _bind match _set _apply _add _remove _construct _initiate _deploy
+    namespace export bind-input bind-output _bind match _set _apply _add _remove _construct _initiate _deploy
 
-    proc _dump_error { type func side message } {
-        # TODO: We might know the production name and scope, once the production wrappers are implemented
-        error "Bad $side $type.$func call: $message"
+    # Tracking variables
+    variable _production_side {}
+    variable _first_operator_action
+    variable _scope {}
+
+    # Sets the current scope variable
+    #
+    # All Glide productions, plus logging, between set-scope calls will be
+    # labeled as belonging to this common scope.  A possible, but not
+    # required, strategy would be to use the relative path and filename of the
+    # current file.
+    #
+    # Yes, ideally this would be set automagically, but JTCL is awful and
+    # doesn't support [info frame], so scripts can't progmatically determine
+    # where they are.  Call your congressional representatives and complain.
+    #
+    # If you elect to use this functionality, highly recommend setting it for
+    # all files.  Since there's no way for Glide to know which file it is,
+    # this variable will carryover into new files, if not set.
+    #
+    # args  List of tokens to combine into the scope
+    proc set-scope { args } {
+        variable ::Glide::_scope [join $args *]
     }
 
-    proc _claim_binding { binding type } {
-        # TODO: Stub!
+    proc bind-input { args } {
+        if { [llength $arguments] == 0 } {
+            set binding "<input-link>"
+        } elseif { [llength $arguments] == 2 } {
+            set binding [lindex $arguments 1]
+        } else {
+            _dump_error "<root>" bind-input lhs "usage: (as <binding>)?"
+        }
+        _claim_binding $binding "input-link"
+        return "([state] ^io.input-link $binding)"
     }
 
-    proc _next_anonymous_binding { type } {
-        # TODO: Add numeric!
-        return "<[set ${type}::identifier]>"
-    }
-
-    proc _lookup_default_binding { type } {
-        # TODO: Confirm actually bound and whatnot
-        return "<[set ${type}::identifier]>"
-    }
-
-    proc _default_attribute { type } {
-        return "^[set ${type}::identifier]"
-    }
-
-    variable _first_operator_action 1
-
-    proc _soar_attribute_to_ngs { attribute } {
-        return [string trimleft $attribute "^"]
+    proc bind-output { args } {
+        if { [llength $arguments] == 0 } {
+            set binding "<output-link>"
+        } elseif { [llength $arguments] == 2 } {
+            set binding [lindex $arguments 1]
+        } else {
+            _dump_error "<root>" bind-input lhs "usage: (as <binding>)?"
+        }
+        _claim_binding $binding "output-link"
+        return "([state] ^io.output-link $binding)"
     }
 
     proc _bind { type_ arguments } {
@@ -366,5 +386,45 @@ namespace eval Glide {
         } else {
             _dump_error $type deploy rhs "deploy must be the first action for this operator (and preferably only)"
         }
+    }
+
+    proc _dump_error { type func side message } {
+        set scope ""
+        if { $::Glide::_scope ne "" } {
+            set scope "$scope$::Glide::_scope "
+        }
+        error "${scope}Bad $side $type.$func call: $message"
+    }
+
+    proc _claim_binding { binding type } {
+        # TODO: Stub!
+    }
+
+    proc _next_anonymous_binding { type } {
+        # TODO: Add numeric!
+        return "<[set ${type}::identifier]>"
+    }
+
+    proc _lookup_default_binding { type } {
+        # TODO: Confirm actually bound and whatnot
+        return "<[set ${type}::identifier]>"
+    }
+
+    proc _default_attribute { type } {
+        return "^[set ${type}::identifier]"
+    }
+
+    proc _soar_attribute_to_ngs { attribute } {
+        return [string trimleft $attribute "^"]
+    }
+
+    proc _state { } {
+        # TODO: Lookup if the user has it set to something else
+        return "<s>"
+    }
+
+    proc _goal { } {
+        # TODO: Lookup the correct value
+        return "<g>"
     }
 }

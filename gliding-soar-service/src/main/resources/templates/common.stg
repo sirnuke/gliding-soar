@@ -77,6 +77,9 @@ proc <name> { <args> } {
 }
 >>
 
+funcBindInput() ::= "bind-input"
+funcBindOutput() ::= "bind-output"
+
 funcBindToPublic() ::= "bind"
 funcBindToInternal() ::= "_bind"
 
