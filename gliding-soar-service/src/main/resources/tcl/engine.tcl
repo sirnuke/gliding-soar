@@ -2,14 +2,22 @@
 proc lhs { root_binding block } {
     set binding $root_binding
 
-    return [subst $block]
+    variable ::Glide::production_side lhs
+    set ret [subst $block]
+    variable ::Glide::production_side {}
+
+    return $ret
 }
 
 # TODO: Should take a block and operator preferences
 proc rhs { block } {
     variable ::Glide::_first_operator_action 1
 
-    return [subst $block]
+    variable ::Glide::production_side rhs
+    set ret [subst $block]
+    variable ::Glide::production_side {}
+
+    return $ret
 }
 
 namespace eval Glide {
