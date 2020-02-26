@@ -22,6 +22,11 @@ namespace eval Glide {
         return "<[set ${type}::identifier]>"
     }
 
+    proc _lookup_default_binding { type } {
+        # TODO: Confirm actually bound and whatnot
+        return "<[set ${type}::identifier]>"
+    }
+
     proc _default_attribute { type } {
         return "^[set ${type}::identifier]"
     }
@@ -110,7 +115,25 @@ namespace eval Glide {
     }
 
     proc _set { type arguments } {
-        # TODO: Stub!
+        if { [llength $arguments] < 2 } {
+            _dump_error $type set rhs "usage: <binding>? (^member value>)+"
+        }
+        set idx 0
+        if { [expr [llength $arguments] % 2] == 1 } {
+            incr idx
+            set binding [lindex $arguments 0]
+        } else {
+            set binding [_lookup_default_binding $type]
+        }
+        set ret "($binding"
+        while { $idx < [llength $arguments] } {
+            set member [lindex $arguments $idx]
+            incr idx
+            set value [lindex $arguments $idx]
+            incr idx
+            set ret "$ret $member $value"
+        }
+        return "$ret)"
     }
 
     proc _apply { type arguments } {

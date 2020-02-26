@@ -9,6 +9,12 @@ upvar binding binding
 })>
 >>
 
+setWrapper(element) ::= <<<\\>
+<proc(name=funcSetPublic(), args="args", public=true, body={<\\>
+::<commonNamespace()>::<funcSetInternal()> "<elementToTCL(element)>" $args
+})>
+>>
+
 declareIdentifier(element) ::= "variable identifier <elementToIdentifier(element)>"
 declareType(element) ::= "variable type <elementToType(element)>"
 
@@ -31,6 +37,10 @@ proc <name> { <args> } {
 
 funcBindToPublic() ::= "bind"
 funcBindToInternal() ::= "_bind"
+
+funcSetPublic() ::= "set"
+funcSetInternal() ::= "_set"
+
 commonNamespace() ::= "Glide"
 
 ngsDeclareType(element) ::= "::NGS_DeclareType <elementToType(element)> {}"
