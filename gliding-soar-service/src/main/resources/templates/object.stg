@@ -3,5 +3,9 @@ import "common.stg"
 object(element) ::= "<namespace(element.identifier.value, body(element))>"
 
 body(element) ::= <<
-<ngsDeclareType(element.identifier.value)>
+<ngsDeclareType(element)>
+<declareIdentifier(element)>
+<declareType(element)>
+
+<bindWrapper(element)>
 >>

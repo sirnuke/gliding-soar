@@ -2,6 +2,40 @@
  * Generic AST->Text templates
  */
 
+bindWrapper(element) ::= <<<\\>
+<proc(name=funcBindToPublic(), args="args", public=true, body={<\\>
+upvar binding binding
+::<commonNamespace()>::<funcBindToInternal()> "<elementToTCL(element)>" $args
+})>
+>>
+
+declareIdentifier(element) ::= "variable identifier <elementToIdentifier(element)>"
+declareType(element) ::= "variable type <elementToType(element)>"
+
+namespace(name, block) ::= <<
+namespace eval <name> {
+    <block>
+}
+>>
+
+elementToType(element) ::= "<element.identifier.fullyQualified; separator={.}>"
+elementToIdentifier(element) ::= "<element.identifier.lowercase>"
+elementToTCL(element) ::= "<element.identifier.fullyQualified; separator={::}>"
+
+proc(name, args, body, public) ::= <<
+<if(public)>namespace export <name><endif>
+proc <name> { <args> } {
+    <body>
+}
+>>
+
+funcBindToPublic() ::= "bind"
+funcBindToInternal() ::= "_bind"
+commonNamespace() ::= "Glide"
+
+ngsDeclareType(element) ::= "::NGS_DeclareType <elementToType(element)> {}"
+
+/*
 requiredParametersAsArguments(members) ::= <<
 <members:{m|<if(m.param&&!m.optional)><\\>
 <m.identifier.lowercase> <\\>
@@ -91,15 +125,7 @@ createAttrFromMember(member) ::= <<
 
 scopeVariable() ::= "::glide::_scope"
 
-/*
- * Pure generic Soar templates
- */
-
 binding(identifier) ::= "\<<identifier>>"
-
-/*
- * NGS Wrappers
- */
 
 // TODO: This assumes that we'll never want NGS to create any defaults for us (probably safe?)
 ngsDeclareType(type) ::= "::NGS_DeclareType <type> {}"
@@ -113,22 +139,6 @@ ngsReplaceIfExists() ::= "$::NGS_REPLACE_IF_EXISTS"
 
 ngsDefaultAddPrefs() ::= "="
 
-/*
- * Pure generic TCL templates
- */
-
-proc(name, args, body, public) ::= <<
-<if(public)><export(name)><endif>
-proc <name> { <args> } {
-    <body>
-}
->>
-
-namespace(name, block) ::= <<
-namespace eval <name> {
-    <block>
-}
->>
 
 if_(condition, block) ::= <<
 if { <condition> } {
@@ -169,3 +179,4 @@ list(words) ::= <<
 variable(var, defaultValue) ::= "variable <var> <defaultValue>"
 
 dictCreate(pairs) ::= "[dict create <pairs; separator={ }>]"
+*/
