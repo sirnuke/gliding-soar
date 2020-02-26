@@ -15,6 +15,24 @@ setWrapper(element) ::= <<<\\>
 })>
 >>
 
+applyWrapper(element) ::= <<<\\>
+<proc(name=funcApplyPublic(), args="args", public=true, body={<\\>
+::<commonNamespace()>::<funcApplyInternal()> "<elementToTCL(element)>" $args
+})>
+>>
+
+addToWrapper(element) ::= <<<\\>
+<proc(name=funcAddToPublic(), args="args", public=true, body={<\\>
+::<commonNamespace()>::<funcAddToInternal()> "<elementToTCL(element)>" $args
+})>
+>>
+
+removeWrapper(element) ::= <<<\\>
+<proc(name=funcRemovePublic(), args="args", public=true, body={<\\>
+::<commonNamespace()>::<funcRemoveInternal()> "<elementToTCL(element)>" $args
+})>
+>>
+
 declareIdentifier(element) ::= "variable identifier <elementToIdentifier(element)>"
 declareType(element) ::= "variable type <elementToType(element)>"
 
@@ -40,6 +58,15 @@ funcBindToInternal() ::= "_bind"
 
 funcSetPublic() ::= "set"
 funcSetInternal() ::= "_set"
+
+funcApplyPublic() ::= "apply"
+funcApplyInternal() ::= "_apply"
+
+funcAddToPublic() ::= "add"
+funcAddToInternal() ::= "_add"
+
+funcRemovePublic() ::= "remove"
+funcRemoveInternal() ::= "_remove"
 
 commonNamespace() ::= "Glide"
 

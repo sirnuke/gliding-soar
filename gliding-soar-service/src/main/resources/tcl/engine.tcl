@@ -5,8 +5,15 @@ proc lhs { root_binding block } {
     return [subst $block]
 }
 
+# TODO: Should take a block and operator preferences
+proc rhs { block } {
+    variable ::Glide::_first_operator_action 1
+
+    return [subst $block]
+}
+
 namespace eval Glide {
-    namespace export _bind _match _set _apply _add _remove _construct _initiate _deploy
+    namespace export _bind match _set _apply _add _remove _construct _initiate _deploy
 
     proc _dump_error { type func side message } {
         # TODO: We might know the production name and scope, once the production wrappers are implemented
@@ -29,6 +36,12 @@ namespace eval Glide {
 
     proc _default_attribute { type } {
         return "^[set ${type}::identifier]"
+    }
+
+    variable _first_operator_action 1
+
+    proc _soar_attribute_to_ngs { attribute } {
+        return [string trimleft $attribute "^"]
     }
 
     proc _bind { type_ arguments } {
@@ -136,16 +149,90 @@ namespace eval Glide {
         return "$ret)"
     }
 
+    # TODO: These three bad bois are basically the same
+    # TODO: Would also be nice to have them inside a wrapping operator function of some sort (sets binding and whatnot)
     proc _apply { type arguments } {
-        # TODO: Stub!
+        if { [llength $arguments] < 2 } {
+            _dump_error $type apply rhs "usage: <binding>? (^member value>)+"
+        }
+        variable _first_operator_action
+        set idx 0
+        if { [expr [llength $arguments] % 2] == 1 } {
+            incr idx
+            set binding [lindex $arguments 0]
+        } else {
+            set binding [_lookup_default_binding $type]
+        }
+        set ret {}
+        while { $idx < [llength $arguments] } {
+            set member [_soar_attribute_to_ngs [lindex $arguments $idx]]
+            incr idx
+            set value [lindex $arguments $idx]
+            incr idx
+            if $_first_operator_action {
+                variable _first_operator_action 0
+                set ret "$ret[ngs-create-attribute-by-operator <s> $binding $member $value $::NGS_REPLACE_IF_EXISTS]"
+            } else {
+                set ret "$ret[ngs-add-primitive-side-effect $::NGS_SIDE_EFFECT_ADD $binding $member $value $::NGS_REPLACE_IF_EXISTS]"
+            }
+        }
+        return $ret
     }
 
     proc _add { type arguments } {
-        # TODO: Stub!
+        if { [llength $arguments] < 2 } {
+            _dump_error $type add rhs "usage: <binding>? (^member value>)+"
+        }
+        variable _first_operator_action
+        set idx 0
+        if { [expr [llength $arguments] % 2] == 1 } {
+            incr idx
+            set binding [lindex $arguments 0]
+        } else {
+            set binding [_lookup_default_binding $type]
+        }
+        set ret {}
+        while { $idx < [llength $arguments] } {
+            set member [_soar_attribute_to_ngs [lindex $arguments $idx]]
+            incr idx
+            set value [lindex $arguments $idx]
+            incr idx
+            if $_first_operator_action {
+                variable _first_operator_action 0
+                set ret "$ret[ngs-create-attribute-by-operator <s> $binding $member $value $::NGS_ADD_TO_SET]"
+            } else {
+                set ret "$ret[ngs-add-primitive-side-effect $::NGS_SIDE_EFFECT_ADD $binding $member $value $::NGS_ADD_TO_SET]"
+            }
+        }
+        return $ret
     }
 
     proc _remove { type arguments } {
-        # TODO: Stub!
+        if { [llength $arguments] < 2 } {
+            _dump_error $type add rhs "usage: <binding>? (^member value>)+"
+        }
+        variable _first_operator_action
+        set idx 0
+        if { [expr [llength $arguments] % 2] == 1 } {
+            incr idx
+            set binding [lindex $arguments 0]
+        } else {
+            set binding [_lookup_default_binding $type]
+        }
+        set ret {}
+        while { $idx < [llength $arguments] } {
+            set member [_soar_attribute_to_ngs [lindex $arguments $idx]]
+            incr idx
+            set value [lindex $arguments $idx]
+            incr idx
+            if $_first_operator_action {
+                variable _first_operator_action 0
+                set ret "$ret[ngs-remove-attribute-by-operator <s> $binding $member $value]"
+            } else {
+                set ret "$ret[ngs-add-primitive-side-effect $::NGS_SIDE_EFFECT_REMOVE $binding $member $value]"
+            }
+        }
+        return $ret
     }
 
     proc _construct { type arguments } {

@@ -9,4 +9,7 @@ body(element) ::= <<
 
 <bindWrapper(element)>
 <setWrapper(element)>
+<applyWrapper(element)>
+<addToWrapper(element)>
+<removeWrapper(element)>
 >>
