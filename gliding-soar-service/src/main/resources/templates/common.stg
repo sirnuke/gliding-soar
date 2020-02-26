@@ -62,7 +62,7 @@ checkTypes(list) ::= <<
 claimBinding(val, type) ::= "<funcClaimBinding()> <val> <type>"
 
 callCreate(type, destination, attribute, binding, attrs) ::= "[::glide::<funcCreate()> <type> <destination> <attribute> <binding> <attrs>]"
-callCreateByOperator(type, destination, attribute, binding, state, add_prefs, attrs) ::= "[::glide::<funcCreateByOperator()> <type> <destination> <attribute> <binding> <state> <add_prefs> <attrs>]"
+callCreateByOperator(type, destination, attribute, binding, state, action, add_prefs, attrs) ::= "[::glide::<funcCreateByOperator()> <type> <destination> <attribute> <binding> <state> <action> <add_prefs> <attrs>]"
 
 checkIModification(destination, attribute, type) ::= "<funcCheckIMod()> <destination> <attribute> <type>"
 checkOModification(destination, attribute, type) ::= "<funcCheckOMod()> <destination> <attribute> <type>"
