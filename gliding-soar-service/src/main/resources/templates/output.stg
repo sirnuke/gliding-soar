@@ -1,55 +1,20 @@
 import "common.stg"
 
-output(element) ::= "<namespace(element.identifier.value, body(element))>"
+object(element) ::= "<namespace(element.identifier.value, body(element))>"
 
 body(element) ::= <<
-<ngsDeclareType(element.identifier.value)>
+<ngsDeclareType(element)>
+<declareIdentifier(element)>
+<declareType(element)>
 
-<defineMembers(element)>
-
-<proc(name="create", public=true, args=iConstructorArguments(element.allMembers), body={<\\>
-
-<setDefaultValue("destination", outputBinding())>
-<setDefaultValue("attribute", element.identifier.lowercase)>
-<setDefaultValue("binding", binding(element.identifier.lowercase))>
-
-<createAttrsOfAllParameters("attrs", element.allMembers)>
-
-<return(callCreate(element.identifier.value, "$destination_", "$attribute_", "$binding_", "$attrs"))><\\>
-})>
-
-<proc(name="create-by-operator", public=true, args=oConstructorArguments(element.allMembers), body={<\\>
-<\\>
-<setDefaultValue("destination", outputBinding())>
-<setDefaultValue("attribute", element.identifier.lowercase)>
-<setDefaultValue("binding", binding(element.identifier.lowercase))>
-<setDefaultValue("state", stateBinding())>
-<setDefaultValue("add_prefs", {"<ngsDefaultAddPrefs()>"})>
-
-<createAttrsOfAllParameters("attrs", element.allMembers)>
-
-<return(callCreateByOperator(element.identifier.value, "$destination_", "$attribute_", "$binding_", "$state_", ngsAddToSet(), "$add_prefs_", "$attrs"))><\\>
-})>
-
-<proc(name="deploy", public=true, args={binding <optionalArguments(["attribute", "destination", "state", "add_prefs"])>}, body={<\\>
-<\\>
-<setDefaultValue("destination", outputBinding())>
-<setDefaultValue("attribute", element.identifier.lowercase)>
-<setDefaultValue("state", stateBinding())>
-<setDefaultValue("add_prefs", {"<ngsDefaultAddPrefs()>"})>
-
-<return(ngsDeepCopy("$state_", "$destination_", "$attribute_", "$binding", ngsAddToSet(), "$add_prefs_"))>
-})>
+<bindWrapper(element)>
+<setWrapper(element)>
+<applyWrapper(element)>
+<addToWrapper(element)>
+<removeWrapper(element)>
+<constructWrapper(element)>
+<constructSetWrapper(element)>
+<initiateWrapper(element)>
+<deployWrapper(element)>
 >>
 
-iConstructorArguments(members) ::= <<
-<requiredParametersAsArguments(members)><\\>
-<optionalParametersAsArguments(members)><\\>
-<optionalArguments(["destination", "attribute", "binding"])>
->>
-
-oConstructorArguments(members) ::= <<
-<requiredParametersAsArguments(members)><\\>
-<optionalParametersAsArguments(members)><\\>
-<optionalArguments(["destination", "attribute", "binding", "state", "add_prefs"])>
->>
