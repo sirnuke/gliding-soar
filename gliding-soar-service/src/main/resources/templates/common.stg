@@ -33,6 +33,30 @@ removeWrapper(element) ::= <<<\\>
 })>
 >>
 
+constructWrapper(element) ::= <<<\\>
+<proc(name=funcConstructSoloPublic(), args="args", public=true, body={<\\>
+::<commonNamespace()>::<funcConstructSoloInternal()> "<elementToTCL(element)>" $args
+})>
+>>
+
+constructSetWrapper(element) ::= <<<\\>
+<proc(name=funcConstructManyPublic(), args="args", public=true, body={<\\>
+::<commonNamespace()>::<funcConstructManyInternal()> "<elementToTCL(element)>" $args
+})>
+>>
+
+initiateWrapper(element) ::= <<<\\>
+<proc(name=funcInitiatePublic(), args="args", public=true, body={<\\>
+::<commonNamespace()>::<funcInitiateInternal()> "<elementToTCL(element)>" $args
+})>
+>>
+
+deployWrapper(element) ::= <<<\\>
+<proc(name=funcDeployPublic(), args="args", public=true, body={<\\>
+::<commonNamespace()>::<funcDeployInternal()> "<elementToTCL(element)>" $args
+})>
+>>
+
 declareIdentifier(element) ::= "variable identifier <elementToIdentifier(element)>"
 declareType(element) ::= "variable type <elementToType(element)>"
 
@@ -67,6 +91,18 @@ funcAddToInternal() ::= "_add"
 
 funcRemovePublic() ::= "remove"
 funcRemoveInternal() ::= "_remove"
+
+funcConstructSoloPublic() ::= "construct"
+funcConstructSoloInternal() ::= "_construct"
+
+funcConstructManyPublic() ::= "construct-set"
+funcConstructManyInternal() ::= "_construct_set"
+
+funcInitiatePublic() ::= "initiate"
+funcInitiateInternal() ::= "_initiate"
+
+funcDeployPublic() ::= "deploy"
+funcDeployInternal() ::= "_deploy"
 
 commonNamespace() ::= "Glide"
 

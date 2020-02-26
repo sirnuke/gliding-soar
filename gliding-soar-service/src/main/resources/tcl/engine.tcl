@@ -209,7 +209,7 @@ namespace eval Glide {
 
     proc _remove { type arguments } {
         if { [llength $arguments] < 2 } {
-            _dump_error $type add rhs "usage: <binding>? (^member value>)+"
+            _dump_error $type remove rhs "usage: <binding>? (^member value>)+"
         }
         variable _first_operator_action
         set idx 0
@@ -236,14 +236,127 @@ namespace eval Glide {
     }
 
     proc _construct { type arguments } {
-        # TODO: Stub!
+        if { [llength $arguments] < 2 } {
+            _dump_error $type construct rhs "usage: <parent> ^attribute (^member value)+ (as <binding>)?"
+        }
+        variable _first_operator_action
+        set binding {}
+        set parent {}
+        set idx 0
+        set parent [lindex $arguments 0]
+        incr idx
+        set attribute [_soar_attribute_to_ngs [lindex $arguments $idx]]
+        incr idx
+        set attrs [list]
+        while { $idx < [llength $arguments] } {
+            set member [lindex $arguments $idx]
+            incr idx
+            if { $member eq "as" } {
+                set binding [lindex $arguments $idx]
+                incr idx
+                if { $idx < [llength $arguments] } {
+                    _dump_error $type construct rhs "as <binding> must be the final entry"
+                }
+            } else {
+                lappend attrs [_soar_attribute_to_ngs $member] [lindex $arguments $idx]
+                incr idx
+            }
+        }
+
+        if { $binding eq "" } {
+            set binding [_next_anonymous_binding $type]
+        }
+
+        if $_first_operator_action {
+            variable _first_operator_action 0
+            return [ngs-create-typed-object-by-operator "<s>" $parent $attribute [set ${type}::type] $binding $attrs $::NGS_REPLACE_IF_EXISTS]
+        } else {
+            return [ngs-create-typed-sub-object-by-operator $parent $attribute [set ${type}::type] $binding $attrs $::NGS_REPLACE_IF_EXISTS]
+        }
+    }
+
+    proc _construct_set { type arguments } {
+        if { [llength $arguments] < 2 } {
+            _dump_error $type construct_set rhs "usage: <parent> ^attribute (^member value)+ (as <binding>)?"
+        }
+        variable _first_operator_action
+        set binding {}
+        set idx 0
+        set parent [lindex $arguments 0]
+        incr idx
+        set attribute [_soar_attribute_to_ngs [lindex $arguments $idx]]
+        incr idx
+        set attrs [list]
+        while { $idx < [llength $arguments] } {
+            set member [lindex $arguments $idx]
+            incr idx
+            if { $member eq "as" } {
+                set binding [lindex $arguments $idx]
+                incr idx
+                if { $idx < [llength $arguments] } {
+                    _dump_error $type construct_set rhs "as <binding> must be the final entry"
+                }
+            } else {
+                lappend attrs [_soar_attribute_to_ngs $member] [lindex $arguments $idx]
+                incr idx
+            }
+        }
+
+        if { $binding eq "" } {
+            set binding [_next_anonymous_binding $type]
+        }
+
+        if $_first_operator_action {
+            variable _first_operator_action 0
+            return [ngs-create-typed-object-by-operator "<s>" $parent $attribute [set ${type}::type] $binding $attrs $::NGS_ADD_TO_SET]
+        } else {
+            return [ngs-create-typed-sub-object-by-operator $parent $attribute [set ${type}::type] $binding $attrs $::NGS_ADD_TO_SET]
+        }
     }
 
     proc _initiate { type arguments } {
-        # TODO: Stub!
+        if { [llength $arguments] < 2 } {
+            _dump_error $type initiate rhs "usage: <parent> ^attribute (^member value)+ (as <binding>)?"
+        }
+
+        set binding {}
+        set idx 0
+        set parent [lindex $arguments 0]
+        incr idx
+        set attribute [_soar_attribute_to_ngs [lindex $arguments $idx]]
+        incr idx
+        set attrs [list]
+        while { $idx < [llength $arguments] } {
+            set member [lindex $arguments $idx]
+            incr idx
+            if { $member eq "as" } {
+                set binding [lindex $arguments $idx]
+                incr idx
+                if { $idx < [llength $arguments] } {
+                    _dump_error $type construct_set rhs "as <binding> must be the final entry"
+                }
+            } else {
+                lappend attrs [_soar_attribute_to_ngs $member] [lindex $arguments $idx]
+                incr idx
+            }
+        }
+
+        return [ngs-create-typed-object $parent $attribute [set ${type}::type] $binding $attrs]
     }
 
     proc _deploy { type arguments } {
-        # TODO: Stub!
+        if { [llength $arguments] != 2 } {
+            _dump_error $type deploy rhs "usage: ^attribute <binding>"
+        }
+        variable _first_operator_action
+        set attribute [_soar_attribute_to_ngs [lindex $arguments 0]]
+        set binding [lindex $arguments 1]
+
+        if $_first_operator_action {
+            variable _first_operator_action 0
+            return [ngs-deep-copy-by-operator "<s>" "<input-link>" $attribute $binding $::NGS_ADD_TO_SET]
+        } else {
+            _dump_error $type deploy rhs "deploy must be the first action for this operator (and preferably only)"
+        }
     }
 }
