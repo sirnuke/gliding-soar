@@ -69,6 +69,7 @@ LHS: *Bind, Match*
 ## Object
 
 LHS: *Bind, Match*
+
 RHS: *Construct, Initiate, Set, Apply, Add, Remove*
 
 ### Construct
@@ -90,6 +91,7 @@ objects created in a single production.
 ## Output
 
 LHS: *Bind, Match*
+
 RHS: *Construct, Initiate, Deply, Set, Apply, Add, Remove*
 
 ### Deploy
