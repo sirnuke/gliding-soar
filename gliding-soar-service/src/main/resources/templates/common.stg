@@ -5,60 +5,77 @@
 bindWrapper(element) ::= <<<\\>
 <proc(name=funcBindToPublic(), args="args", public=true, body={<\\>
 upvar binding binding
-::<commonNamespace()>::<funcBindToInternal()> "<elementToTCL(element)>" $args
+::<commonNamespace()>::<funcBindToInternal()> "<identifierToTCL(element.identifier)>" $args
 })>
 >>
 
 setWrapper(element) ::= <<<\\>
 <proc(name=funcSetPublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcSetInternal()> "<elementToTCL(element)>" $args
+::<commonNamespace()>::<funcSetInternal()> "<identifierToTCL(element.identifier)>" $args
 })>
 >>
 
 applyWrapper(element) ::= <<<\\>
 <proc(name=funcApplyPublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcApplyInternal()> "<elementToTCL(element)>" $args
+::<commonNamespace()>::<funcApplyInternal()> "<identifierToTCL(element.identifier)>" $args
 })>
 >>
 
 addToWrapper(element) ::= <<<\\>
 <proc(name=funcAddToPublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcAddToInternal()> "<elementToTCL(element)>" $args
+::<commonNamespace()>::<funcAddToInternal()> "<identifierToTCL(element.identifier)>" $args
 })>
 >>
 
 removeWrapper(element) ::= <<<\\>
 <proc(name=funcRemovePublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcRemoveInternal()> "<elementToTCL(element)>" $args
+::<commonNamespace()>::<funcRemoveInternal()> "<identifierToTCL(element.identifier)>" $args
 })>
 >>
 
 constructWrapper(element) ::= <<<\\>
 <proc(name=funcConstructSoloPublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcConstructSoloInternal()> "<elementToTCL(element)>" $args
+::<commonNamespace()>::<funcConstructSoloInternal()> "<identifierToTCL(element.identifier)>" $args
 })>
 >>
 
 constructSetWrapper(element) ::= <<<\\>
 <proc(name=funcConstructManyPublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcConstructManyInternal()> "<elementToTCL(element)>" $args
+::<commonNamespace()>::<funcConstructManyInternal()> "<identifierToTCL(element.identifier)>" $args
 })>
 >>
 
 initiateWrapper(element) ::= <<<\\>
 <proc(name=funcInitiatePublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcInitiateInternal()> "<elementToTCL(element)>" $args
+::<commonNamespace()>::<funcInitiateInternal()> "<identifierToTCL(element.identifier)>" $args
 })>
 >>
 
 deployWrapper(element) ::= <<<\\>
 <proc(name=funcDeployPublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcDeployInternal()> "<elementToTCL(element)>" $args
+::<commonNamespace()>::<funcDeployInternal()> "<identifierToTCL(element.identifier)>" $args
 })>
 >>
 
-declareIdentifier(element) ::= "variable identifier <elementToIdentifier(element)>"
-declareType(element) ::= "variable type <elementToType(element)>"
+declareIdentifier(element) ::= "variable identifier <identifierToAttribute(element.identifier)>"
+declareType(element) ::= "variable type <identifierToType(element.identifier)>"
+
+declareMembers(element) ::= <<<\\>
+variable members
+array set members "
+    <element.allMembers:declareMember(); separator="\n">
+"
+>>
+
+declareMember(member) ::= <<<member.identifier> \"[dict create <\\>
+support <member.support.label> <\\>
+tag <member.tag> <\\>
+type <identifierToType(member.type)> <\\>
+tcl <identifierToTCL(member.type)> <\\>
+optional <member.optional> <\\>
+const <member.const> <\\>
+multiple <member.multiple> <\\>
+]\">>
 
 namespace(name, block) ::= <<
 namespace eval <name> {
@@ -66,9 +83,9 @@ namespace eval <name> {
 }
 >>
 
-elementToType(element) ::= "<element.identifier.fullyQualified; separator={.}>"
-elementToIdentifier(element) ::= "<element.identifier.lowercase>"
-elementToTCL(element) ::= "<element.identifier.fullyQualified; separator={::}>"
+identifierToType(identifier) ::= "<identifier.fullyQualified; separator={.}>"
+identifierToAttribute(identifier) ::= "<identifier.lowercase>"
+identifierToTCL(identifier) ::= "<identifier.fullyQualified; separator={::}>"
 
 proc(name, args, body, public) ::= <<
 <if(public)>namespace export <name><endif>
@@ -109,5 +126,5 @@ funcDeployInternal() ::= "_deploy"
 
 commonNamespace() ::= "Glide"
 
-ngsDeclareType(element) ::= "::NGS_DeclareType <elementToType(element)> {}"
+ngsDeclareType(element) ::= "::NGS_DeclareType <identifierToType(element.identifier)> {}"
 

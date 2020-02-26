@@ -5,6 +5,7 @@ object(element) ::= "<namespace(element.identifier.value, body(element))>"
 body(element) ::= <<
 <declareIdentifier(element)>
 <declareType(element)>
+<declareMembers(element)>
 
 <bindWrapper(element)>
 >>

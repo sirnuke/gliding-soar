@@ -6,6 +6,7 @@ body(element) ::= <<
 <ngsDeclareType(element)>
 <declareIdentifier(element)>
 <declareType(element)>
+<declareMembers(element)>
 
 <bindWrapper(element)>
 <setWrapper(element)>
