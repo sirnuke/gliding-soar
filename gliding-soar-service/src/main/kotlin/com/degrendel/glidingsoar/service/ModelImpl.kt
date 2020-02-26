@@ -20,6 +20,7 @@ class ModelImpl(private val arguments: Array<String>?, private val standalone: B
   private val root = RootNamespace()
   private val elements = mutableListOf<Element>()
   private val template = STGroupFile(javaClass.getResource("/templates/bundle.stg"))
+  private val engine = javaClass.getResource("/tcl/engine.tcl")!!.readText()
   private val parser = BlockParser()
 
   private object ElementRenderer : AttributeRenderer
@@ -63,6 +64,7 @@ class ModelImpl(private val arguments: Array<String>?, private val standalone: B
     bundle.add("when", Instant.now())
     bundle.add("arguments", arguments)
     bundle.add("standalone", standalone)
+    bundle.add("engine", engine)
     bundle.add("root", root)
     return bundle.render()
   }
