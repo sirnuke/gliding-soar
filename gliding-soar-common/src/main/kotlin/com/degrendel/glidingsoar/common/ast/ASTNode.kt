@@ -25,6 +25,8 @@ data class ResolvedIdentifier(override val location: Location, val namespace: Li
 {
   override val children = ArrayList<ASTNode>()
 
+  val fullyQualified = namespace.map { it.value }.plus(value)
+
   init
   {
     children.addAll(namespace)
