@@ -48,14 +48,13 @@ class BlockParserTests
     }
   }
 
-  private fun assertMember(member: Member, name: String, type: String, support: Member.SupportType = Member.SupportType.UNRESTRICTED, param: Boolean = false, const: Boolean = false, optional: Boolean = false, tag: Boolean = false, multiple: Boolean = false)
+  private fun assertMember(member: Member, name: String, type: String, support: Member.SupportType = Member.SupportType.UNRESTRICTED, optional: Boolean = false, const: Boolean = false, tag: Boolean = false, multiple: Boolean = false)
   {
     assertEquals(name, member.identifier.value)
     assertEquals(type, member.type.value)
     assertEquals(support, member.support)
     assertEquals(tag, member.tag)
     assertEquals(multiple, member.multiple)
-    assertEquals(param, member.param)
     assertEquals(const, member.const)
     assertEquals(optional, member.optional)
   }
@@ -98,24 +97,26 @@ class BlockParserTests
   {
     val block = """
       object FooBar {
-        param foo: Boolean
-        param bar: FooBar
-        param? hello: Int
-        param world: Thing+
-        param? what: String+
-        param!? hmm: Nope
-        param! asdf: ASDF+
+        foo: Boolean
+        bar: FooBar?
+        hello: Int!
+        world: Thing+
+        what: String+?
+        hmm: Nope+!
+        asdf: ASDF!?
+        backwards: Forwards+!?
       }
     """.trimIndent()
     val element = assertSuccess(block).elements.first()
-    assertEquals(7, element.members.size)
-    assertMember(element.members[0], "foo", "Boolean", param = true)
-    assertMember(element.members[1], "bar", "FooBar", param = true)
-    assertMember(element.members[2], "hello", "Int", param = true, optional = true)
-    assertMember(element.members[3], "world", "Thing", param = true, multiple = true)
-    assertMember(element.members[4], "what", "String", param = true, optional = true, multiple = true)
-    assertMember(element.members[5], "hmm", "Nope", param = true, optional = true, const = true)
-    assertMember(element.members[6], "asdf", "ASDF", param = true, const = true, multiple = true)
+    assertEquals(8, element.members.size)
+    assertMember(element.members[0], "foo", "Boolean")
+    assertMember(element.members[1], "bar", "FooBar", optional = true)
+    assertMember(element.members[2], "hello", "Int", const = true)
+    assertMember(element.members[3], "world", "Thing", multiple = true)
+    assertMember(element.members[4], "what", "String", optional = true, multiple = true)
+    assertMember(element.members[5], "hmm", "Nope", const = true, multiple = true)
+    assertMember(element.members[6], "asdf", "ASDF", const = true, optional = true)
+    assertMember(element.members[7], "backwards", "Forwards", optional = true, const = true, multiple = true)
   }
 
   @Test

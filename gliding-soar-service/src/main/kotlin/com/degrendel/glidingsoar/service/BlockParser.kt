@@ -84,21 +84,20 @@ class BlockParser : GlidingSoarBaseVisitor<List<Element>>()
     override fun visitMember(ctx: GlidingSoarParser.MemberContext): Member
     {
       val identifier = convertIdentifier(ctx.IDENTIFIER())
-      val param = ctx.PARAMETER() != null
-      val const = ctx.CONST() != null
-      val optional = ctx.OPTIONAL() != null
       val type = visitResolvedIdentifier(ctx.resolvedIdentifier())
-      val tag = ctx.TAG() != null
-      val multiple = ctx.MULTIPLE() != null
+      val tag = (ctx.TAG() != null)
+      val const = (ctx.CONST().size > 0)
+      val optional = (ctx.OPTIONAL().size > 0)
+      val multiple = (ctx.MULTIPLE().size > 0)
       if (ctx.I_SUPPORT() != null && ctx.O_SUPPORT() != null)
         throw IllegalStateException("Found member that is both o support and i support!: $ctx")
-      val supportType = when
+      val support = when
       {
         ctx.I_SUPPORT() != null -> Member.SupportType.ISUPPORT
         ctx.O_SUPPORT() != null -> Member.SupportType.OSUPPORT
         else -> Member.SupportType.UNRESTRICTED
       }
-      return Member(symbolToLocation(ctx.start), supportType, param, optional, const, tag, identifier, type, multiple)
+      return Member(symbolToLocation(ctx.start), support = support, tag = tag, identifier = identifier, type = type, const = const, optional = optional, multiple = multiple)
     }
 
     override fun visitMatch(ctx: GlidingSoarParser.MatchContext): Match
