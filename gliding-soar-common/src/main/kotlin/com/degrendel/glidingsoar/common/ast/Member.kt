@@ -8,8 +8,7 @@ data class Member(override val location: Location, val support: SupportType, val
   {
     ISUPPORT("i"),
     OSUPPORT("o"),
-    // Aka empty TCL string.  Yes, this is slightly improper, but much easier to handle here to whatever
-    UNRESTRICTED("{}"),
+    UNRESTRICTED("any"),
   }
 
   init
