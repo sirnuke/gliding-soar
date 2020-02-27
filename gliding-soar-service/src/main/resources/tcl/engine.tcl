@@ -7,7 +7,6 @@ proc lhs { root_binding block } {
 
     variable ::Glide::_in_hs 1
     set ret [subst $block]
-    variable ::Glide::_in_hs 0
 
     ::Glide::_reset_lhs
 
@@ -15,24 +14,28 @@ proc lhs { root_binding block } {
 }
 
 # Indicates 
-proc operator { args } {
+proc operator { block { log "" } { add_prefs "=" } } {
     variable ::Glide::_first_operator_action 1
-
     variable ::Glide::_in_operator 1
+    variable ::Glide::_operator_preferences $add_prefs
+
     set ret [subst $block]
-    variable ::Glide::_in_operator 0
+
+    ::Glide::_reset_operator
+
+    if { $logs ne "" } {
+        # TODO: Add logging side effect
+    }
 
     return $ret
 }
 
-
 namespace eval Glide {
-    namespace export set-scope bind-input bind-output _bind match _set _apply _add _remove _construct _initiate _deploy _reset_lhs
-
     # Tracking variables
     variable _in_lhs 0
     variable _in_operator 0
     variable _first_operator_action
+    variable _operator_preferences
     variable _scope {}
 
     array set _bindings {}
@@ -57,6 +60,7 @@ namespace eval Glide {
     proc set-scope { args } {
         variable ::Glide::_scope [join $args *]
     }
+    namespace export set-scope
 
     proc bind-input { args } {
         _assert_lhs bind-input
@@ -68,8 +72,9 @@ namespace eval Glide {
             _dump_error "<root>" bind-input lhs "usage: (as <binding>)?"
         }
         _claim_binding "" "bind-input" lhs $binding "input-link"
-        return "([state] ^io.input-link $binding)"
+        return "([_state] ^io.input-link $binding)"
     }
+    namespace export bind-input
 
     proc bind-output { args } {
         _assert_lhs bind-output
@@ -81,8 +86,9 @@ namespace eval Glide {
             _dump_error "<root>" bind-input lhs "usage: (as <binding>)?"
         }
         _claim_binding "" "bind-output" lhs $binding "output-link"
-        return "([state] ^io.output-link $binding)"
+        return "([_state] ^io.output-link $binding)"
     }
+    namespace export bind-output
 
     proc _bind { type_ arguments } {
         _assert_lhs "${type_}::bind"
@@ -119,6 +125,7 @@ namespace eval Glide {
 
         return "($parent_binding $attribute $binding)[subst $block]"
     }
+    namespace export _bind
 
     proc match { args } {
         upvar binding binding
@@ -170,222 +177,138 @@ namespace eval Glide {
 
         return "$ret)"
     }
+    namespace export match
 
-    proc _set { type arguments } {
-        if { [llength $arguments] < 2 } {
-            _dump_error $type set rhs "usage: <binding>? (^member value>)+"
-        }
-        set idx 0
-        if { [expr [llength $arguments] % 2] == 1 } {
-            incr idx
-            set binding [lindex $arguments 0]
-        } else {
+    proc _modify { type_ block { binding_ "" } } {
+        set type $type_
+
+        if { $binding_ eq "" } {
             set binding [_lookup_default_binding $type]
+        } else {
+            set binding $binding_
         }
-        set ret "($binding"
-        while { $idx < [llength $arguments] } {
-            set member [lindex $arguments $idx]
-            incr idx
-            set value [lindex $arguments $idx]
-            incr idx
-            set ret "$ret $member $value"
-        }
-        return "$ret)"
+
+        return [subst $block]
     }
+    namespace export _modify
 
-    # TODO: These three bad bois are basically the same
-    # TODO: Would also be nice to have them inside a wrapping operator function of some sort (sets binding and whatnot)
-    proc _apply { type arguments } {
-        if { [llength $arguments] < 2 } {
-            _dump_error $type apply rhs "usage: <binding>? (^member value>)+"
+    proc add { args } {
+        upvar type type
+        upvar binding binding
+        if { [llength $args] < 2 || [expr [llength $args] % 2] != 0 } {
+            _dump_error $type add rhs "usage: (^member <value>)+"
         }
-        variable _first_operator_action
-        set idx 0
-        if { [expr [llength $arguments] % 2] == 1 } {
-            incr idx
-            set binding [lindex $arguments 0]
-        } else {
-            set binding [_lookup_default_binding $type]
+        if { $_in_operator } {
+            set support o
+        } else  {
+            set support i
         }
-        set ret {}
-        while { $idx < [llength $arguments] } {
-            set member [_soar_attribute_to_ngs [lindex $arguments $idx]]
-            incr idx
-            set value [lindex $arguments $idx]
-            incr idx
-            if $_first_operator_action {
-                variable _first_operator_action 0
-                set ret "$ret[ngs-create-attribute-by-operator <s> $binding $member $value $::NGS_REPLACE_IF_EXISTS]"
+
+        set ret ""
+        if { !$_in_operator } {
+            set ret "($binding"
+        }
+        # TODO: Compute multiple
+        # TODO: Support tagging
+        foreach { member_ value } $args {
+            _check_member $type add $member_ $value 0 1 0 $support 0
+            set member [_soar_attribute_to_ngs $member_]
+            if { $_in_operator } {
+                set action [_get_ngs_action $type $member]
+                if { $_first_operator_action } {
+                    variable _first_operator_action 0
+                    set ret "$ret[ngs-create-attribute-by-operator [_state] $binding $member $value $action $_operator_preferences"
+                } else {
+                    set ret "$ret[ngs-add-primitive-side-effect $::NGS_SIDE_EFFECT_ADD $binding $member $value $action]"
+                }
             } else {
-                set ret "$ret[ngs-add-primitive-side-effect $::NGS_SIDE_EFFECT_ADD $binding $member $value $::NGS_REPLACE_IF_EXISTS]"
+                set ret "$ret $member $value"
             }
         }
+
+        if { !$_in_operator } {
+            set ret "$ret)"
+        }
+
         return $ret
     }
 
-    proc _add { type arguments } {
-        if { [llength $arguments] < 2 } {
-            _dump_error $type add rhs "usage: <binding>? (^member value>)+"
+    proc remove { args } {
+        upvar type type
+        upvar binding binding
+        if { [llength $args] < 2 || [expr [llength $args] % 2] != 0 } {
+            _dump_error $type remove rhs "usage: (^member <value>)+"
         }
-        variable _first_operator_action
-        set idx 0
-        if { [expr [llength $arguments] % 2] == 1 } {
-            incr idx
-            set binding [lindex $arguments 0]
-        } else {
-            set binding [_lookup_default_binding $type]
+        if { $_in_operator } {
+            set support o
+        } else  {
+            set support i
         }
-        set ret {}
-        while { $idx < [llength $arguments] } {
-            set member [_soar_attribute_to_ngs [lindex $arguments $idx]]
-            incr idx
-            set value [lindex $arguments $idx]
-            incr idx
-            if $_first_operator_action {
-                variable _first_operator_action 0
-                set ret "$ret[ngs-create-attribute-by-operator <s> $binding $member $value $::NGS_ADD_TO_SET]"
+        set ret ""
+        if { !$_in_operator } {
+            set ret "($binding"
+        }
+        # TODO: Tags
+        foreach { member_ value } $args {
+            _check_member $type remove $member_ $value 0 0 0 $support 0
+            set member [_soar_attribute_to_ngs $member_]
+            if { $_in_operator } {
+                if { $_first_operator_action } {
+                        variable _first_operator_action 0
+                        set ret "$ret[ngs-remove-attribute-by-operator [_state] $binding $member ]"
+                } else {
+                    set ret "$ret[ngs-add-primitive-side-effect $::NGS_SIDE_EFFECT_REMOVE $binding $member $value]"
+                }
             } else {
-                set ret "$ret[ngs-add-primitive-side-effect $::NGS_SIDE_EFFECT_ADD $binding $member $value $::NGS_ADD_TO_SET]"
+                set ret "$ret $member $value -"
             }
         }
+
+        if { !$_in_operator } {
+            set ret "$ret)"
+        }
+
         return $ret
     }
 
-    proc _remove { type arguments } {
-        if { [llength $arguments] < 2 } {
-            _dump_error $type remove rhs "usage: <binding>? (^member value>)+"
+    proc _construct { type action arguments } {
+        # TODO: Should be able to infere
+        if { [llength $arguments] < 4 || [expr [llength $arguments] % 2 != 0] } {
+            _dump_error $type construct rhs "usage: binding ^attribute (^member value)+ (as <binding>)?"
         }
-        variable _first_operator_action
-        set idx 0
-        if { [expr [llength $arguments] % 2] == 1 } {
-            incr idx
-            set binding [lindex $arguments 0]
-        } else {
-            set binding [_lookup_default_binding $type]
-        }
-        set ret {}
-        while { $idx < [llength $arguments] } {
-            set member [_soar_attribute_to_ngs [lindex $arguments $idx]]
-            incr idx
-            set value [lindex $arguments $idx]
-            incr idx
-            if $_first_operator_action {
-                variable _first_operator_action 0
-                set ret "$ret[ngs-remove-attribute-by-operator <s> $binding $member $value]"
-            } else {
-                set ret "$ret[ngs-add-primitive-side-effect $::NGS_SIDE_EFFECT_REMOVE $binding $member $value]"
-            }
-        }
-        return $ret
-    }
 
-    proc _construct { type arguments } {
-        if { [llength $arguments] < 2 } {
-            _dump_error $type construct rhs "usage: <parent> ^attribute (^member value)+ (as <binding>)?"
-        }
-        variable _first_operator_action
-        set binding {}
-        set parent {}
-        set idx 0
-        set parent [lindex $arguments 0]
-        incr idx
-        set attribute [_soar_attribute_to_ngs [lindex $arguments $idx]]
-        incr idx
+        set binding ""
+        set parent_binding [lindex $arguments 0]
+        set attribute [_soar_attribute_to_ngs [lindex $arguments 1]]
         set attrs [list]
-        while { $idx < [llength $arguments] } {
-            set member [lindex $arguments $idx]
-            incr idx
+        foreach { member value } $arguments {
             if { $member eq "as" } {
-                set binding [lindex $arguments $idx]
-                incr idx
-                if { $idx < [llength $arguments] } {
+                if { $binding ne "" } {
                     _dump_error $type construct rhs "as <binding> must be the final entry"
+
                 }
+                set binding $value
             } else {
-                lappend attrs [_soar_attribute_to_ngs $member] [lindex $arguments $idx]
-                incr idx
+                lappend attrs [_soar_attribute_to_ngs $member] $value
             }
         }
+
+        # TODO: Check values here
 
         if { $binding eq "" } {
             set binding [_next_anonymous_binding $type]
         }
 
-        if $_first_operator_action {
-            variable _first_operator_action 0
-            return [ngs-create-typed-object-by-operator "<s>" $parent $attribute [set ${type}::type] $binding $attrs $::NGS_REPLACE_IF_EXISTS]
-        } else {
-            return [ngs-create-typed-sub-object-by-operator $parent $attribute [set ${type}::type] $binding $attrs $::NGS_REPLACE_IF_EXISTS]
-        }
-    }
-
-    proc _construct_set { type arguments } {
-        if { [llength $arguments] < 2 } {
-            _dump_error $type construct_set rhs "usage: <parent> ^attribute (^member value)+ (as <binding>)?"
-        }
-        variable _first_operator_action
-        set binding {}
-        set idx 0
-        set parent [lindex $arguments 0]
-        incr idx
-        set attribute [_soar_attribute_to_ngs [lindex $arguments $idx]]
-        incr idx
-        set attrs [list]
-        while { $idx < [llength $arguments] } {
-            set member [lindex $arguments $idx]
-            incr idx
-            if { $member eq "as" } {
-                set binding [lindex $arguments $idx]
-                incr idx
-                if { $idx < [llength $arguments] } {
-                    _dump_error $type construct_set rhs "as <binding> must be the final entry"
-                }
+        if { $_in_operator } {
+            if $_first_operator_action {
+                variable _first_operator_action 0
+                return [ngs-create-typed-object-by-operator [_state] $parent $attribute [set ${type}::type] $binding $attrs $action $_operator_preferences]
             } else {
-                lappend attrs [_soar_attribute_to_ngs $member] [lindex $arguments $idx]
-                incr idx
+                return [ngs-create-typed-sub-object-by-operator $parent $attribute [set ${type}::type] $binding $attrs]
             }
-        }
-
-        if { $binding eq "" } {
-            set binding [_next_anonymous_binding $type]
-        }
-
-        if $_first_operator_action {
-            variable _first_operator_action 0
-            return [ngs-create-typed-object-by-operator "<s>" $parent $attribute [set ${type}::type] $binding $attrs $::NGS_ADD_TO_SET]
         } else {
-            return [ngs-create-typed-sub-object-by-operator $parent $attribute [set ${type}::type] $binding $attrs $::NGS_ADD_TO_SET]
+            return [ngs-create-typed-object $parent $attribute [set ${type}::type] $binding $attrs]
         }
-    }
-
-    proc _initiate { type arguments } {
-        if { [llength $arguments] < 2 } {
-            _dump_error $type initiate rhs "usage: <parent> ^attribute (^member value)+ (as <binding>)?"
-        }
-
-        set binding {}
-        set idx 0
-        set parent [lindex $arguments 0]
-        incr idx
-        set attribute [_soar_attribute_to_ngs [lindex $arguments $idx]]
-        incr idx
-        set attrs [list]
-        while { $idx < [llength $arguments] } {
-            set member [lindex $arguments $idx]
-            incr idx
-            if { $member eq "as" } {
-                set binding [lindex $arguments $idx]
-                incr idx
-                if { $idx < [llength $arguments] } {
-                    _dump_error $type construct_set rhs "as <binding> must be the final entry"
-                }
-            } else {
-                lappend attrs [_soar_attribute_to_ngs $member] [lindex $arguments $idx]
-                incr idx
-            }
-        }
-
-        return [ngs-create-typed-object $parent $attribute [set ${type}::type] $binding $attrs]
     }
 
     proc _deploy { type arguments } {
@@ -396,23 +319,25 @@ namespace eval Glide {
         set attribute [_soar_attribute_to_ngs [lindex $arguments 0]]
         set binding [lindex $arguments 1]
 
-        if $_first_operator_action {
+        if { $_first_operator_action } {
             variable _first_operator_action 0
-            return [ngs-deep-copy-by-operator "<s>" "<input-link>" $attribute $binding $::NGS_ADD_TO_SET]
+            return [ngs-deep-copy-by-operator [_state] [_output_link] $attribute $binding $::NGS_ADD_TO_SET]
         } else {
             _dump_error $type deploy rhs "deploy must be the first action for this operator (and preferably only)"
         }
     }
 
-    proc _is_multiple { type member } {
+    proc _get_ngs_action { type member_ } {
+        set member [_soar_attribute_to_ngs $member_]
         if { [dict get ${[set ${type}::members]} multiple] eq "true" } {
-            return 1
+            return $::NGS_ADD_TO_SET
         } else {
-            return 0
+            return $::NGS_REPLACE_IF_EXISTS
         }
     }
 
-    proc _check_member { type function member value tag add creation support multi_add } {
+    proc _check_member { type function member_ value tag add creation support multi_add } {
+        set member [_soar_attribute_to_ngs $member_]
         if { [array names [set ${type}::members] -exact $member] eq "" } {
             _dump_error $type $function rhs "no member $member defined"
         }
@@ -447,6 +372,7 @@ namespace eval Glide {
     }
 
     proc _dump_error { type func side message } {
+        # TODO: Look up the call chain for func, possibly side
         set scope ""
         if { $::Glide::_scope ne "" } {
             set scope "$scope$::Glide::_scope "
@@ -499,6 +425,16 @@ namespace eval Glide {
         return "<g>"
     }
 
+    proc _input_link { } {
+        return "<input-link>"
+    }
+    namespace export _input_link
+
+    proc _output_link { } {
+        return "<output-link>"
+    }
+    namespace export _output_link
+
     proc _assert_lhs { func } {
         if { !$_in_lhs } {
             _dump_error "" $func lhs "must be within a LHS block"
@@ -506,7 +442,14 @@ namespace eval Glide {
     }
 
     proc _reset_lhs { } {
+        variable ::Glide::_in_hs 0
         array set _bindings {}
         array set _anonymous_bindings
+    }
+
+    proc _reset_operator { } {
+        variable ::Glide::_in_operator 0
+        variable _first_operator_action ""
+        variable _operator_preference ""
     }
 }
