@@ -1,32 +1,42 @@
 # Manually opens a LHS context, with root_binding as the root binding
+# TODO: This probably be either a state or a goal
 proc lhs { root_binding block } {
     set binding $root_binding
 
-    variable ::Glide::production_side lhs
+    ::Glide::_claim_binding {} lhs lhs $root_binding root
+
+    variable ::Glide::_in_hs 1
     set ret [subst $block]
-    variable ::Glide::production_side {}
+    variable ::Glide::_in_hs 0
+
+    ::Glide::_reset_lhs
 
     return $ret
 }
 
-# TODO: Should take a block and operator preferences
-proc rhs { block } {
+# Indicates 
+proc operator { args } {
     variable ::Glide::_first_operator_action 1
 
-    variable ::Glide::production_side rhs
+    variable ::Glide::_in_operator 1
     set ret [subst $block]
-    variable ::Glide::production_side {}
+    variable ::Glide::_in_operator 0
 
     return $ret
 }
 
+
 namespace eval Glide {
-    namespace export bind-input bind-output _bind match _set _apply _add _remove _construct _initiate _deploy
+    namespace export set-scope bind-input bind-output _bind match _set _apply _add _remove _construct _initiate _deploy _reset_lhs
 
     # Tracking variables
-    variable _production_side {}
+    variable _in_lhs 0
+    variable _in_operator 0
     variable _first_operator_action
     variable _scope {}
+
+    array set _bindings {}
+    array set _anonymous_bindings {}
 
     # Sets the current scope variable
     #
@@ -49,6 +59,7 @@ namespace eval Glide {
     }
 
     proc bind-input { args } {
+        _assert_lhs bind-input
         if { [llength $arguments] == 0 } {
             set binding "<input-link>"
         } elseif { [llength $arguments] == 2 } {
@@ -56,11 +67,12 @@ namespace eval Glide {
         } else {
             _dump_error "<root>" bind-input lhs "usage: (as <binding>)?"
         }
-        _claim_binding $binding "input-link"
+        _claim_binding "" "bind-input" lhs $binding "input-link"
         return "([state] ^io.input-link $binding)"
     }
 
     proc bind-output { args } {
+        _assert_lhs bind-output
         if { [llength $arguments] == 0 } {
             set binding "<output-link>"
         } elseif { [llength $arguments] == 2 } {
@@ -68,11 +80,12 @@ namespace eval Glide {
         } else {
             _dump_error "<root>" bind-input lhs "usage: (as <binding>)?"
         }
-        _claim_binding $binding "output-link"
+        _claim_binding "" "bind-output" lhs $binding "output-link"
         return "([state] ^io.output-link $binding)"
     }
 
     proc _bind { type_ arguments } {
+        _assert_lhs "${type_}::bind"
         set type $type_
         upvar binding parent_binding
         if { [llength $arguments] < 1 || [llength $arguments] > 4 } {
@@ -97,6 +110,9 @@ namespace eval Glide {
         if { $binding eq "" } {
             set binding [_next_anonymous_binding $type]
         }
+
+        _claim_binding $type bind lhs $binding $type
+
         if { $attribute eq "" } {
             set attribute [_default_attribute $type]
         }
@@ -388,6 +404,48 @@ namespace eval Glide {
         }
     }
 
+    proc _is_multiple { type member } {
+        if { [dict get ${[set ${type}::members]} multiple] eq "true" } {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    proc _check_member { type function member value tag add creation support multi_add } {
+        if { [array names [set ${type}::members] -exact $member] eq "" } {
+            _dump_error $type $function rhs "no member $member defined"
+        }
+        set definition ${[set ${type}::members]($member)}
+
+        # Confirm support is
+        if { $support eq "i" && [dict get $definition support] eq "o" } {
+            _dump_error $type $function rhs "cannot apply i-support modification $value to o-support member $member"
+        } elseif { $support eq "o" && [dict get $definition support] eq "i" } {
+            _dump_error $type $function rhs "cannot apply o-support modification $value to i-support member $member"
+        }
+
+        # Confirm tag matches expected
+        if { [dict get $definition tag] eq "true" && !$tag } {
+            _dump_error $type $function rhs "member $member is a tag"
+        } elseif { [dict get $definition tag] eq "false" && $tag } {
+            _dump_error $type $function rhs "member $member is not a tag"
+        }
+
+        # TODO: Compare the type of value with the member definition
+
+        # Confirm if const, this modification is being done at the object's creation
+        if { [dict get $definition const] eq "true" && !$creation } {
+            _dump_error $type $function rhs "cannot modify const member $member to $value outside the object's creation"
+        }
+
+        # If doing a multi add ($NGS_ADD_TO_SET), check whether member allows multiples
+        # Note that we can't really check this for i-support modifications, nor whether there's actually multiple members
+        if { [dict get $definition multiple] eq "false" && $multi_add } {
+            _dump_error $type $function rhs "cannot add value $value as a set member to member $member"
+        }
+    }
+
     proc _dump_error { type func side message } {
         set scope ""
         if { $::Glide::_scope ne "" } {
@@ -396,13 +454,26 @@ namespace eval Glide {
         error "${scope}Bad $side $type.$func call: $message"
     }
 
-    proc _claim_binding { binding type } {
-        # TODO: Stub!
+    proc _claim_binding { type func side binding binding_type } {
+        set existing [array names _binding -exact $binding]
+        if { $existing ne "" } {
+            _dump_error $type $func $side "Cannot set binding $binding as $binding_type already exists as $existing"
+        }
+        set _bindings($binding) $binding_type
     }
 
     proc _next_anonymous_binding { type } {
-        # TODO: Add numeric!
-        return "<[set ${type}::identifier]>"
+        set identifier [set ${type}::identifier]
+        if { [array names _anonymous_bindings -exact $identifier] -ne "" } {
+            set identifier "$identifier${_anonymous_bindings($identifier)}"
+            incr _anonymous_bindings($identifier)
+        } else {
+            set _anonymous_bindings($identifier) 1
+        }
+
+        set binding "<$identifier>"
+
+        return $binding
     }
 
     proc _lookup_default_binding { type } {
@@ -426,5 +497,16 @@ namespace eval Glide {
     proc _goal { } {
         # TODO: Lookup the correct value
         return "<g>"
+    }
+
+    proc _assert_lhs { func } {
+        if { !$_in_lhs } {
+            _dump_error "" $func lhs "must be within a LHS block"
+        }
+    }
+
+    proc _reset_lhs { } {
+        array set _bindings {}
+        array set _anonymous_bindings
     }
 }
