@@ -272,35 +272,54 @@ namespace eval Glide {
     }
 
     proc _construct { type action arguments } {
-        # TODO: Should be able to infere
+        # TODO: Should be able to inferere action, also check the binding ^attribute this
         if { [llength $arguments] < 4 || [expr [llength $arguments] % 2 != 0] } {
             _dump_error $type construct rhs "usage: binding ^attribute (^member value)+ (as <binding>)?"
+        }
+        if { $_in_operator } {
+            set support "o"
+        } else {
+            set support "i"
         }
 
         set binding ""
         set parent_binding [lindex $arguments 0]
         set attribute [_soar_attribute_to_ngs [lindex $arguments 1]]
+        set required [_all_const_members $type]
+        set additions [dict create]
         set attrs [list]
-        foreach { member value } $arguments {
-            if { $member eq "as" } {
+        foreach { member_ value } $arguments {
+            if { $member_ eq "as" } {
                 if { $binding ne "" } {
                     _dump_error $type construct rhs "as <binding> must be the final entry"
-
                 }
                 set binding $value
             } else {
+                set member [_soar_attribute_to_ngs $member_]
+                if {[dict exists $additions $member]} {
+                    set multi_add [dict get $additions $member]
+                } else {
+                    set multi_add 0
+                }
+                _check_member $type construct $member $value 0 1 1 $support $multi_add
+                incr multi_add
+                dict set additions $member $multi_add
                 lappend attrs [_soar_attribute_to_ngs $member] $value
             }
         }
 
-        # TODO: Check values here
+        foreach member $required {
+            if { ![dict exists $additions $member] } {
+                _dump_error $type construct rhs "member $member is required (const non-optional) but not set"
+            }
+        }
 
         if { $binding eq "" } {
             set binding [_next_anonymous_binding $type]
         }
 
         if { $_in_operator } {
-            if $_first_operator_action {
+            if { $_first_operator_action } {
                 variable _first_operator_action 0
                 return [ngs-create-typed-object-by-operator [_state] $parent $attribute [set ${type}::type] $binding $attrs $action $_operator_preferences]
             } else {
@@ -369,6 +388,17 @@ namespace eval Glide {
         if { [dict get $definition multiple] eq "false" && $multi_add } {
             _dump_error $type $function rhs "cannot add value $value as a set member to member $member"
         }
+    }
+
+    # Returns a list of all required (const and non-optional) members for a given type.
+    proc _all_required_members { type } {
+        set res [list]
+        foreach { member definition } [array get [set ${type}::members]] {
+            if { [dict get $definition const] eq "true" && [dict get $definition optional] ne "true" } {
+                lappend res $member
+            }
+        }
+        return $res
     }
 
     proc _dump_error { type func side message } {
@@ -446,10 +476,12 @@ namespace eval Glide {
         array set _bindings {}
         array set _anonymous_bindings
     }
+    namespace export _reset_lhs
 
     proc _reset_operator { } {
         variable ::Glide::_in_operator 0
         variable _first_operator_action ""
         variable _operator_preference ""
     }
+    namespace export _reset_operator
 }
