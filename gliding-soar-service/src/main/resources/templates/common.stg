@@ -9,45 +9,21 @@ upvar binding binding
 })>
 >>
 
-setWrapper(element) ::= <<<\\>
-<proc(name=funcSetPublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcSetInternal()> "<identifierToTCL(element.identifier)>" $args
-})>
->>
-
-applyWrapper(element) ::= <<<\\>
-<proc(name=funcApplyPublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcApplyInternal()> "<identifierToTCL(element.identifier)>" $args
-})>
->>
-
-addToWrapper(element) ::= <<<\\>
-<proc(name=funcAddToPublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcAddToInternal()> "<identifierToTCL(element.identifier)>" $args
-})>
->>
-
-removeWrapper(element) ::= <<<\\>
-<proc(name=funcRemovePublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcRemoveInternal()> "<identifierToTCL(element.identifier)>" $args
+modifyWrapper(element) ::= <<<\\>
+<proc(name=funcModifyPublic(), args="args", public=true, body={<\\>
+::<commonNamespace()>::<funcModifyInternal()> "<identifierToTCL(element.identifier)>" $args
 })>
 >>
 
 constructWrapper(element) ::= <<<\\>
-<proc(name=funcConstructSoloPublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcConstructSoloInternal()> "<identifierToTCL(element.identifier)>" $args
+<proc(name=funcConstructPublic(), args="args", public=true, body={<\\>
+::<commonNamespace()>::<funcConstructInternal()> "<identifierToTCL(element.identifier)>" $::NGS_REPLACE_IF_EXISTS $args
 })>
 >>
 
 constructSetWrapper(element) ::= <<<\\>
-<proc(name=funcConstructManyPublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcConstructManyInternal()> "<identifierToTCL(element.identifier)>" $args
-})>
->>
-
-initiateWrapper(element) ::= <<<\\>
-<proc(name=funcInitiatePublic(), args="args", public=true, body={<\\>
-::<commonNamespace()>::<funcInitiateInternal()> "<identifierToTCL(element.identifier)>" $args
+<proc(name=funcConstructSetPublic(), args="args", public=true, body={<\\>
+::<commonNamespace()>::<funcConstructInternal()> "<identifierToTCL(element.identifier)>" $::NGS_ADD_TO_SET $args
 })>
 >>
 
@@ -93,32 +69,15 @@ proc <name> { <args> } {
 }
 >>
 
-funcBindInput() ::= "bind-input"
-funcBindOutput() ::= "bind-output"
-
 funcBindToPublic() ::= "bind"
 funcBindToInternal() ::= "_bind"
 
-funcSetPublic() ::= "set"
-funcSetInternal() ::= "_set"
+funcModifyPublic() ::= "modify"
+funcModifyInternal() ::= "_modify"
 
-funcApplyPublic() ::= "apply"
-funcApplyInternal() ::= "_apply"
-
-funcAddToPublic() ::= "add"
-funcAddToInternal() ::= "_add"
-
-funcRemovePublic() ::= "remove"
-funcRemoveInternal() ::= "_remove"
-
-funcConstructSoloPublic() ::= "construct"
-funcConstructSoloInternal() ::= "_construct"
-
-funcConstructManyPublic() ::= "construct-set"
-funcConstructManyInternal() ::= "_construct_set"
-
-funcInitiatePublic() ::= "initiate"
-funcInitiateInternal() ::= "_initiate"
+funcConstructPublic() ::= "construct"
+funcConstructInternal() ::= "_construct"
+funcConstructSetPublic() ::= "construct-set"
 
 funcDeployPublic() ::= "deploy"
 funcDeployInternal() ::= "_deploy"

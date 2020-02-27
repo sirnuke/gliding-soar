@@ -9,13 +9,9 @@ body(element) ::= <<
 <declareMembers(element)>
 
 <bindWrapper(element)>
-<setWrapper(element)>
-<applyWrapper(element)>
-<addToWrapper(element)>
-<removeWrapper(element)>
+<modifyWrapper(element)>
 <constructWrapper(element)>
 <constructSetWrapper(element)>
-<initiateWrapper(element)>
 <deployWrapper(element)>
 >>
 
