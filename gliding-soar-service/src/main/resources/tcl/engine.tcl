@@ -202,32 +202,49 @@ namespace eval Glide {
             set support o
         } else  {
             set support i
+            set itags [list]
         }
 
         set ret ""
         if { !$_in_operator } {
             set ret "($binding"
         }
-        # TODO: Compute multiple
-        # TODO: Support tagging
+        # TODO: Compute multiple (i.e. multiple attributes in the same modification which isn't allowed?)
         foreach { member_ value } $args {
-            _check_member $type add $member_ $value 0 1 0 $support 0
-            set member [_soar_attribute_to_ngs $member_]
+            set data [_is_attribute_or_tag $type add rhs $member_]
+            set is_tag [lindex $data 0]
+            set member [lindex $data 1]
+            _check_member $type add $member_ $value $is_tag 1 0 $support 0
             if { $_in_operator } {
                 set action [_get_ngs_action $type $member]
                 if { $_first_operator_action } {
                     variable _first_operator_action 0
-                    set ret "$ret[ngs-create-attribute-by-operator [_state] $binding $member $value $action $_operator_preferences"
+                    if { $is_tag } {
+                        set ret "$ret[ngs-create-tag-by-operator [_state] $binding $member [_convert_tag $value] $action $_operator_preferences"
+                    } else {
+                        set ret "$ret[ngs-create-attribute-by-operator [_state] $binding $member $value $action $_operator_preferences"
+                    }
                 } else {
-                    set ret "$ret[ngs-add-primitive-side-effect $::NGS_SIDE_EFFECT_ADD $binding $member $value $action]"
+                    if { $is_tag } {
+                        set ret "$ret[ngs-add-tag-side-effect $::NGS_SIDE_EFFECT_ADD $binding $member [_convert_tag $value] $action"
+                    } else {
+                        set ret "$ret[ngs-add-primitive-side-effect $::NGS_SIDE_EFFECT_ADD $binding $member $value $action]"
+                    }
                 }
             } else {
-                set ret "$ret $member $value"
+                if { $is_tag } {
+                    lappend itags $member $value
+                } else {
+                    set ret "$ret $member $value"
+                }
             }
         }
 
         if { !$_in_operator } {
             set ret "$ret)"
+            for { member value } $itags {
+                set ret "$ret\n[$binding $member [_convert_tag $value]]"
+            }
         }
 
         return $ret
@@ -239,33 +256,30 @@ namespace eval Glide {
         if { [llength $args] < 2 || [expr [llength $args] % 2] != 0 } {
             _dump_error $type remove rhs "usage: (^member <value>)+"
         }
-        if { $_in_operator } {
-            set support o
-        } else  {
-            set support i
-        }
-        set ret ""
         if { !$_in_operator } {
-            set ret "($binding"
+            _dump_error $type remove rhs "remove not allowed in non-operators"
         }
-        # TODO: Tags
+
+        set ret ""
         foreach { member_ value } $args {
-            _check_member $type remove $member_ $value 0 0 0 $support 0
-            set member [_soar_attribute_to_ngs $member_]
-            if { $_in_operator } {
-                if { $_first_operator_action } {
-                        variable _first_operator_action 0
-                        set ret "$ret[ngs-remove-attribute-by-operator [_state] $binding $member ]"
+            set data [_is_attribute_or_tag $type remove rhs $member_]
+            set is_tag [lindex $data 0]
+            set member [lindex $data 1]
+            _check_member $type remove $member $value $is_tag 0 0 $support 0
+            if { $_first_operator_action } {
+                    variable _first_operator_action 0
+                    if { $is_tag }  {
+                        set ret "$ret[ngs-remove-tag-by-operator [_state] $binding $member [_convert_tag $value] $_operator_preferences]"
+                    } else {
+                        set ret "$ret[ngs-remove-attribute-by-operator [_state] $binding $member]"
+                    }
+            } else {
+                if { $is_tag } {
+                    set ret "$ret[ngs-add-tag-side-effect $::NGS_SIDE_EFFECT_REMOVE $binding $member [_convert_tag $value]"
                 } else {
                     set ret "$ret[ngs-add-primitive-side-effect $::NGS_SIDE_EFFECT_REMOVE $binding $member $value]"
                 }
-            } else {
-                set ret "$ret $member $value -"
             }
-        }
-
-        if { !$_in_operator } {
-            set ret "$ret)"
         }
 
         return $ret
@@ -276,6 +290,7 @@ namespace eval Glide {
         if { [llength $arguments] < 4 || [expr [llength $arguments] % 2 != 0] } {
             _dump_error $type construct rhs "usage: binding ^attribute (^member value)+ (as <binding>)?"
         }
+        set tags [list]
         if { $_in_operator } {
             set support "o"
         } else {
@@ -295,16 +310,22 @@ namespace eval Glide {
                 }
                 set binding $value
             } else {
-                set member [_soar_attribute_to_ngs $member_]
+                set data [_is_attribute_or_tag $type construct rhs $member_]
+                set is_tag [lindex $data 0]
+                set member [lindex $data 1]
                 if {[dict exists $additions $member]} {
                     set multi_add [dict get $additions $member]
                 } else {
                     set multi_add 0
                 }
-                _check_member $type construct $member $value 0 1 1 $support $multi_add
+                _check_member $type construct $member $value $is_tag 1 1 $support $multi_add
                 incr multi_add
                 dict set additions $member $multi_add
-                lappend attrs [_soar_attribute_to_ngs $member] $value
+                if { $is_tag } {
+                    lappend tags $member $value
+                } else {
+                    lappend attrs $member $value
+                }
             }
         }
 
@@ -321,13 +342,23 @@ namespace eval Glide {
         if { $_in_operator } {
             if { $_first_operator_action } {
                 variable _first_operator_action 0
-                return [ngs-create-typed-object-by-operator [_state] $parent $attribute [set ${type}::type] $binding $attrs $action $_operator_preferences]
+                set ret [ngs-create-typed-object-by-operator [_state] $parent $attribute [set ${type}::type] $binding $attrs $action $_operator_preferences]
             } else {
-                return [ngs-create-typed-sub-object-by-operator $parent $attribute [set ${type}::type] $binding $attrs]
+                set ret [ngs-create-typed-sub-object-by-operator $parent $attribute [set ${type}::type] $binding $attrs]
             }
         } else {
-            return [ngs-create-typed-object $parent $attribute [set ${type}::type] $binding $attrs]
+            set ret [ngs-create-typed-object $parent $attribute [set ${type}::type] $binding $attrs]
         }
+
+        foreach { member value } $tags {
+            if { $_in_operator } {
+                set ret "$ret[ngs-add-tag-side-effect $::NGS_SIDE_EFFECT_ADD $binding $member [_convert_tag $value] [_get_ngs_action $type $member]"
+            } else {
+                set ret "$ret[$binding $member [_convert_tag $value]]"
+            }
+        }
+
+        return $ret
     }
 
     proc _deploy { type arguments } {
@@ -355,8 +386,7 @@ namespace eval Glide {
         }
     }
 
-    proc _check_member { type function member_ value tag add creation support multi_add } {
-        set member [_soar_attribute_to_ngs $member_]
+    proc _check_member { type function member value tag add creation support multi_add } {
         if { [array names [set ${type}::members] -exact $member] eq "" } {
             _dump_error $type $function rhs "no member $member defined"
         }
@@ -453,6 +483,25 @@ namespace eval Glide {
     proc _goal { } {
         # TODO: Lookup the correct value
         return "<g>"
+    }
+
+    proc _is_attribute_or_tag { type function side member } {
+        set first [string index $member]
+        if { $first eq "^" } {
+            return [list 0 [string trimleft $member "^"]]
+        } elseif { $first eq "!" } {
+            return [list 1 [string trimleft $member "!"]]
+        } else {
+            _dump_error $type $function $side "member $member does not appear to be an ^attribute or !tag"
+        }
+    }
+
+    proc _convert_tag { value } {
+        if { $value eq "tag" } {
+            return {""}
+        } else {
+            return $value
+        }
     }
 
     proc _input_link { } {
