@@ -83,7 +83,7 @@ class Main(private val args: Array<String>) : Callable<Int>
             it.walk().asSequence().filter { f -> f.isDirectory }.forEach { f -> register(f) }
         }
         else if (it.isFile)
-          register(it.parentFile)
+          register(it.absoluteFile.parentFile)
         else
           throw IllegalStateException("Target $it that exists but isn't directory or file?")
       }
