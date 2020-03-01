@@ -1,6 +1,6 @@
 import "common.stg"
 
-object(element) ::= "<namespace(element.identifier.value, body(element))>"
+input(element) ::= "<namespace(element.identifier.value, body(element))>"
 
 body(element) ::= <<
 <declareIdentifier(element)>
