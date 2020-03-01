@@ -61,5 +61,10 @@ class Element(override val location: Location, val type: ElementType, val identi
       }
     }
   }
+
+  override fun toString(): String
+  {
+    return "Element $type $identifier $location : ${extends.joinToString(", ")} ${members.size} members ${matches.size} matches"
+  }
 }
 

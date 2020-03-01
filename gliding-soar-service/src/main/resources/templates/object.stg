@@ -3,6 +3,7 @@ import "common.stg"
 object(element) ::= "<namespace(element.identifier.value, body(element))>"
 
 body(element) ::= <<
+# <element>
 <ngsDeclareType(element)>
 <declareIdentifier(element)>
 <declareType(element)>

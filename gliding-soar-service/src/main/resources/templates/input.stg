@@ -3,6 +3,7 @@ import "common.stg"
 input(element) ::= "<namespace(element.identifier.value, body(element))>"
 
 body(element) ::= <<
+# <element>
 <declareIdentifier(element)>
 <declareType(element)>
 <declareMembers(element)>
