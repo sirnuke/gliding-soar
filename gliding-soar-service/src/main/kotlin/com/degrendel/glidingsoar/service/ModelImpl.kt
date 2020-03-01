@@ -26,11 +26,8 @@ class ModelImpl(private val arguments: Array<String>?, private val standalone: B
   private object ElementRenderer : AttributeRenderer
   {
     private val outputTemplate = STGroupFile(javaClass.getResource("/templates/output.stg"))
-    private val output = outputTemplate.getInstanceOf("output")
     private val inputTemplate = STGroupFile(javaClass.getResource("/templates/input.stg"))
-    private val input = inputTemplate.getInstanceOf("input")
     private val objectTemplate = STGroupFile(javaClass.getResource("/templates/object.stg"))
-    private val `object` = objectTemplate.getInstanceOf("object")
 
     override fun toString(obj: Any, formatString: String?, locale: Locale?): String
     {
@@ -39,9 +36,9 @@ class ModelImpl(private val arguments: Array<String>?, private val standalone: B
       L.info("Converting element {} of type {} to a string", obj, obj.type)
       val renderer = when (obj.type)
       {
-        Element.ElementType.OUTPUT -> output
-        Element.ElementType.INPUT -> input
-        Element.ElementType.OBJECT -> `object`
+        Element.ElementType.OUTPUT -> outputTemplate.getInstanceOf("output")
+        Element.ElementType.INPUT -> inputTemplate.getInstanceOf("input")
+        Element.ElementType.OBJECT -> objectTemplate.getInstanceOf("object")
         Element.ElementType.INTERFACE -> return ""
       }
       renderer.add("element", obj)
